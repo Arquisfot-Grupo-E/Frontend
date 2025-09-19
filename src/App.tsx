@@ -1,27 +1,57 @@
-import "./index.css";
+import React, { useState } from "react";
+import Navbar from "./Components/organisms/Navbar";
 import BookSearch from "./Components/pages/BookSearch";
-import React from "react";
+import type { Book } from "./types/Book";
 
 function App() {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(""); // controla el texto del input
+
+  const handleSearch = async (query: string) => {
+    try {
+      setHasSearched(true);
+      setIsLoading(true);
+
+      const res = await fetch(
+        `http://localhost:8000/books/search?q=${encodeURIComponent(query)}`
+      );
+      if (!res.ok) throw new Error("Error en la búsqueda");
+      const data: Book[] = await res.json();
+      setBooks(data);
+    } catch (error) {
+      console.error("Error fetching books", error);
+      setBooks([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClear = () => {
+    setBooks([]);
+    setHasSearched(false);
+    setIsLoading(false);
+    setSearchQuery(""); // limpia el texto del buscador
+  };
+
   return (
     <div className="min-h-screen bg-[var(--background-color)] text-[var(--text-color)]">
-      {/* 🔸 Header */}
-      <header className="bg-[var(--primary-color)] text-white shadow-md">
-        <div className="max-w-5xl mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold">📚 Bookworm</h1>
-        </div>
-      </header>
+      <Navbar
+        onSearch={handleSearch}
+        onClear={handleClear}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
 
-      {/* 🔸 Contenido principal */}
       <main className="max-w-5xl mx-auto px-6 py-8">
-        <h2 className="text-xl font-semibold mb-6">
-        </h2>
-
-        {/* El componente de búsqueda queda dentro de la página */}
-        <BookSearch />
+        <BookSearch
+          books={books}
+          hasSearched={hasSearched}
+          isLoading={isLoading}
+        />
       </main>
 
-      {/* 🔸 Footer */}
       <footer className="bg-[var(--secondary-color)] text-white text-center py-4 mt-10">
         <p>© 2025 BookFinder. Todos los derechos reservados.</p>
       </footer>
