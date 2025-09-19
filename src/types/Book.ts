@@ -1,5 +1,5 @@
-// src/types/Book.ts
 export type Book = {
+  id?: string;  // optional
   title: string;
   authors: string[];
   publisher?: string;
