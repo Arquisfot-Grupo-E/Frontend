@@ -6,65 +6,48 @@ type Props = {
 };
 
 const SearchResults: React.FC<Props> = ({ books }) => {
-  if (!books || books.length === 0) {
-    return (
-      <p className="text-center text-[var(--text-color)]">No hay resultados</p>
-    );
-  }
+  if (!books || books.length === 0) return null;
 
   return (
-    <ul className="space-y-4">
-      {books.map((book, idx) => (
-        <li
-          key={idx}
-          className="flex items-start gap-4 p-4
-                     bg-[var(--card-bg-color)] text-[var(--text-color)]
-                     rounded-xl shadow-md border border-[var(--primary-color)]
-                     hover:shadow-xl hover:bg-[var(--background-color)]
-                     transition-colors duration-200"
-        >
-          {/* 📚 Imagen del libro */}
-          {book.thumbnail && (
-            <img
-              src={book.thumbnail}
-              alt={book.title}
-              className="w-24 h-36 object-cover rounded-md flex-shrink-0"
-            />
-          )}
+    <div className="grid grid-cols-1 gap-4">
+      {books.map((book, idx) => {
+        const author =
+          book.authors && book.authors.length > 0
+            ? book.authors.join(", ")
+            : "Desconocido";
 
-          {/* 📖 Info del libro */}
-          <div className="flex-1 space-y-2">
+        return (
+          <div
+            key={book.title + idx}
+            className="flex gap-4 items-center p-4 rounded-lg bg-[var(--card-bg-color)] border"
+          >
+            {book.thumbnail ? (
+              <img
+                src={book.thumbnail}
+                alt={book.title ?? "Portada"}
+                className="w-16 h-20 object-cover rounded-md"
+              />
+            ) : (
+              <div className="w-16 h-20 flex items-center justify-center rounded-md bg-gray-100 text-sm text-gray-500">
+                Sin imagen
+              </div>
+            )}
+
             <div>
-              <h3 className="text-lg font-bold">{book.title}</h3>
-              {book.authors?.length > 0 && (
-                <p className="text-sm font-medium">{book.authors.join(", ")}</p>
-              )}
-              {book.publisher && (
-                <p className="text-xs opacity-80">
-                  📚 {book.publisher} – {book.published_date}
-                </p>
-              )}
+              <h3 className="font-semibold">
+                {book.title ?? "Título desconocido"}
+              </h3>
+              <p className="text-sm text-gray-500">{author}</p>
               {book.description && (
-                <p className="text-sm opacity-90 line-clamp-3">
+                <p className="text-sm mt-1 line-clamp-2 text-gray-600">
                   {book.description}
                 </p>
               )}
             </div>
-
-            {/* 🔘 Botón Ver Reseñas */}
-            <button
-              onClick={() => alert(`Reseñas de: ${book.title}`)}
-              className="inline-block mt-2 px-4 py-2 rounded-lg
-                         bg-[var(--primary-color)] text-white font-semibold
-                         shadow hover:bg-[var(--secondary-color)]
-                         transition-colors duration-200"
-            >
-              Ver reseñas
-            </button>
           </div>
-        </li>
-      ))}
-    </ul>
+        );
+      })}
+    </div>
   );
 };
 

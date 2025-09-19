@@ -1,34 +1,34 @@
-import React, { useState } from "react";
+import React from "react";
+import { Search } from "lucide-react";
 
 type Props = {
   onSearch: (query: string) => void;
+  value: string;
+  setValue: (query: string) => void;
 };
 
-const SearchBar: React.FC<Props> = ({ onSearch }) => {
-  const [query, setQuery] = useState("");
-
+const SearchBar: React.FC<Props> = ({ onSearch, value, setValue }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) onSearch(query);
+    if (value.trim()) onSearch(value);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-xl mx-auto mb-8">
+    <form onSubmit={handleSubmit} className="relative flex w-full max-w-sm">
       <input
         type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Busca un libro..."
-        className="flex-1 px-4 py-2 rounded-l-xl border border-[var(--primary-color)]
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Buscar..."
+        className="w-full pl-10 pr-4 py-1.5 rounded-lg border border-[var(--primary-color)]
                    focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]
-                   bg-[var(--card-bg-color)] text-[var(--text-color)]"
+                   bg-[var(--card-bg-color)] text-[var(--text-color)] text-sm"
       />
       <button
         type="submit"
-        className="px-6 py-2 rounded-r-xl bg-[var(--primary-color)] text-white font-semibold
-                   hover:bg-[var(--secondary-color)] transition-colors"
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] hover:text-[var(--secondary-color)]"
       >
-        Buscar
+        <Search size={18} />
       </button>
     </form>
   );
