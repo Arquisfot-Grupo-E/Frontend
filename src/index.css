@@ -3,9 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #D97706;
+  /* --primary-color: hsl(32, 95%, 44%); */
+  --primary-color:#92d0ff;
   --secondary-color: #B45309;
-  --background-color: #FEF3C7;
+  --background-color: #123c54;
   --text-color: #78350F;
   --card-bg-color: #FFFBEB;
 }

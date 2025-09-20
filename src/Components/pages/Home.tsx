@@ -53,7 +53,7 @@ export default function Home() {
         />
       </main>
 
-      <footer className="bg-[var(--secondary-color)] text-white text-center py-4 mt-10">
+      <footer className="bg-[var(--primary-color)] text-white text-center py-4 mt-10">
         <p>© 2025 BookFinder. Todos los derechos reservados.</p>
       </footer>
     </div>
