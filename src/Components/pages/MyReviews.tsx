@@ -14,7 +14,7 @@ const MyReviews: React.FC = () => {
   const [searchQueryBody, setSearchQueryBody] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  const { reviews, reviewsLoading, bookInfos, handleSaveReview: saveReview, handleUpdateReview, handleDeleteReview } = useMyReviews();
+  const { reviews, reviewsLoading, bookInfos, userVotes, handleSaveReview: saveReview, handleUpdateReview, handleDeleteReview, handleVoteReview } = useMyReviews();
 
   const handleSearch = async (query: string) => {
     try {
@@ -79,6 +79,25 @@ const MyReviews: React.FC = () => {
     }
   };
 
+  const handleVoteReviewWithErrorHandling = async (reviewId: number, vote: 1 | -1 | 0) => {
+    try {
+      await handleVoteReview(reviewId, vote);
+    } catch (error) {
+      console.error("Error voting on review:", error);
+      let message = "Error al votar en la reseña.";
+      
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (typeof error === 'string') {
+        message = error;
+      } else if (error && typeof error === 'object' && 'detail' in error) {
+        message = (error as any).detail;
+      }
+      
+      alert(message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--background-color)] text-[var(--text-color)]">
       <div className="max-w-5xl mx-auto px-6 py-8">
@@ -120,6 +139,8 @@ const MyReviews: React.FC = () => {
             loading={reviewsLoading} 
             onUpdateReview={handleUpdateReview}
             onDeleteReview={handleDeleteReviewWithErrorHandling}
+            onVoteReview={handleVoteReviewWithErrorHandling}
+            userVotes={userVotes}
           />
         </div>
       </div>

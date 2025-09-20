@@ -8,9 +8,11 @@ type Props = {
   book?: Book;
   onUpdateReview: (reviewId: number, content: string) => void;
   onDeleteReview: (reviewId: number) => void;
+  onVoteReview: (reviewId: number, vote: 1 | -1 | 0) => void;
+  userVote?: 1 | -1 | 0;
 };
 
-const ReviewItem: React.FC<Props> = ({ review, book, onUpdateReview, onDeleteReview }) => {
+const ReviewItem: React.FC<Props> = ({ review, book, onUpdateReview, onDeleteReview, onVoteReview, userVote = 0 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(review.content);
 
@@ -28,6 +30,16 @@ const ReviewItem: React.FC<Props> = ({ review, book, onUpdateReview, onDeleteRev
     if (window.confirm('¿Estás seguro de que quieres eliminar esta reseña?')) {
       onDeleteReview(review.id);
     }
+  };
+
+  const handleUpvote = () => {
+    const newVote = userVote === 1 ? 0 : 1; // Si ya votó up, quitar voto (0), sino votar up (1)
+    onVoteReview(review.id, newVote);
+  };
+
+  const handleDownvote = () => {
+    const newVote = userVote === -1 ? 0 : -1; // Si ya votó down, quitar voto (0), sino votar down (-1)
+    onVoteReview(review.id, newVote);
   };
 
   return (
@@ -103,7 +115,28 @@ const ReviewItem: React.FC<Props> = ({ review, book, onUpdateReview, onDeleteRev
           )}
           
           <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">Karma: {review.karma_score}</p>
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col items-center">
+                <button
+                  onClick={handleUpvote}
+                  className={`text-lg ${userVote === 1 ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'}`}
+                  title="Upvote"
+                >
+                  ▲
+                </button>
+                <span className="text-sm font-semibold text-gray-700">
+                  {review.karma_score ?? 0}
+                </span>
+                <button
+                  onClick={handleDownvote}
+                  className={`text-lg ${userVote === -1 ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'}`}
+                  title="Downvote"
+                >
+                  ▼
+                </button>
+              </div>
+              <span className="text-sm text-gray-600">Karma</span>
+            </div>
             <p className="text-xs text-gray-400">
               Actualizado: {new Date(review.updated_at).toLocaleDateString()}
             </p>

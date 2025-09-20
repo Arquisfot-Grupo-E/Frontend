@@ -10,9 +10,11 @@ type Props = {
   loading: boolean;
   onUpdateReview: (reviewId: number, content: string) => void;
   onDeleteReview: (reviewId: number) => void;
+  onVoteReview: (reviewId: number, vote: 1 | -1 | 0) => void;
+  userVotes: Record<number, 1 | -1 | 0>;
 };
 
-const ReviewList: React.FC<Props> = ({ reviews, bookInfos, loading, onUpdateReview, onDeleteReview }) => {
+const ReviewList: React.FC<Props> = ({ reviews, bookInfos, loading, onUpdateReview, onDeleteReview, onVoteReview, userVotes }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-20">
@@ -34,6 +36,8 @@ const ReviewList: React.FC<Props> = ({ reviews, bookInfos, loading, onUpdateRevi
           book={bookInfos[review.google_book_id]}
           onUpdateReview={onUpdateReview}
           onDeleteReview={onDeleteReview}
+          onVoteReview={onVoteReview}
+          userVote={userVotes?.[review.id] || 0}
         />
       ))}
     </div>

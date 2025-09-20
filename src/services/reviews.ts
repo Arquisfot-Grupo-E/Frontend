@@ -87,3 +87,23 @@ export const deleteReview = async (reviewId: number) => {
 
   return response.ok;
 };
+
+export const voteReview = async (reviewId: number, vote: 1 | -1 | 0) => {
+  const response = await fetch(`${API_BASE}/reviews/${reviewId}/vote`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      value: vote,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: 'Error desconocido' }));
+    throw new Error(errorData.detail);
+  }
+
+  const result = await response.json();
+  return result;
+};
