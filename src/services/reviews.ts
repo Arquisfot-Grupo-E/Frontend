@@ -52,3 +52,38 @@ export const getBookById = async (id: string): Promise<Book> => {
 
   return response.json();
 };
+
+export const updateReview = async (reviewId: number, content: string) => {
+  const response = await fetch(`${API_BASE}/reviews/${reviewId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      content: content,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: 'Error desconocido' }));
+    throw new Error(errorData.detail);
+  }
+
+  return response.json();
+};
+
+export const deleteReview = async (reviewId: number) => {
+  const response = await fetch(`${API_BASE}/reviews/${reviewId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: 'Error desconocido' }));
+    throw new Error(errorData.detail);
+  }
+
+  return response.ok;
+};

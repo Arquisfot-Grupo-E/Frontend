@@ -14,7 +14,7 @@ const MyReviews: React.FC = () => {
   const [searchQueryBody, setSearchQueryBody] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  const { reviews, reviewsLoading, bookInfos, handleSaveReview: saveReview } = useMyReviews();
+  const { reviews, reviewsLoading, bookInfos, handleSaveReview: saveReview, handleUpdateReview, handleDeleteReview } = useMyReviews();
 
   const handleSearch = async (query: string) => {
     try {
@@ -68,6 +68,17 @@ const MyReviews: React.FC = () => {
     }
   };
 
+  const handleDeleteReviewWithErrorHandling = async (reviewId: number) => {
+    try {
+      await handleDeleteReview(reviewId);
+      alert("Reseña eliminada exitosamente!");
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      const message = error instanceof Error ? error.message : "Error al eliminar la reseña.";
+      alert(message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--background-color)] text-[var(--text-color)]">
       <div className="max-w-5xl mx-auto px-6 py-8">
@@ -103,7 +114,13 @@ const MyReviews: React.FC = () => {
 
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Mis Reseñas</h2>
-          <ReviewList reviews={reviews} bookInfos={bookInfos} loading={reviewsLoading} />
+          <ReviewList 
+            reviews={reviews} 
+            bookInfos={bookInfos} 
+            loading={reviewsLoading} 
+            onUpdateReview={handleUpdateReview}
+            onDeleteReview={handleDeleteReviewWithErrorHandling}
+          />
         </div>
       </div>
     </div>
