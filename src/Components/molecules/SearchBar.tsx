@@ -5,9 +5,10 @@ type Props = {
   onSearch: (query: string) => void;
   value: string;
   setValue: (query: string) => void;
+  placeholder?: string;
 };
 
-const SearchBar: React.FC<Props> = ({ onSearch, value, setValue }) => {
+const SearchBar: React.FC<Props> = ({ onSearch, value, setValue, placeholder = "Buscar..." }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (value.trim()) onSearch(value);
@@ -19,7 +20,7 @@ const SearchBar: React.FC<Props> = ({ onSearch, value, setValue }) => {
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Buscar..."
+        placeholder={placeholder}
         className="w-full pl-10 pr-4 py-1.5 rounded-lg border border-[var(--primary-color)]
                    focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]
                    bg-[var(--card-bg-color)] text-[var(--text-color)] text-sm"
