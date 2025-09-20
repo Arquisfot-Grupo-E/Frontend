@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import SearchBar from "../molecules/SearchBar";
 import BookGridSmall from "../organisms/BookGridSmall";
 import ReviewForm from "../organisms/ReviewForm";
-import { saveReview } from "../../services/reviews";
+import ReviewList from "../organisms/ReviewList";
+import { useMyReviews } from "../../hooks/useMyReviews";
 import type { Book } from "../../types/Book";
 
 const MyReviews: React.FC = () => {
@@ -12,6 +13,8 @@ const MyReviews: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQueryBody, setSearchQueryBody] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+
+  const { reviews, reviewsLoading, bookInfos, handleSaveReview: saveReview } = useMyReviews();
 
   const handleSearch = async (query: string) => {
     try {
@@ -75,7 +78,7 @@ const MyReviews: React.FC = () => {
             onSearch={handleSearch}
             value={searchQueryBody}
             setValue={setSearchQueryBody}
-            placeholder="Buscar en Mis Reseñas..."
+            placeholder="Buscar libros..."
           />
           <button
             onClick={handleClear}
@@ -97,6 +100,11 @@ const MyReviews: React.FC = () => {
         )}
 
         <ReviewForm selectedBook={selectedBook} onSaveReview={handleSaveReview} />
+
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Mis Reseñas</h2>
+          <ReviewList reviews={reviews} bookInfos={bookInfos} loading={reviewsLoading} />
+        </div>
       </div>
     </div>
   );
