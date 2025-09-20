@@ -7,6 +7,7 @@ type Props = {
   onClear: () => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
+  placeholder?: string;
 };
 
 const Navbar: React.FC<Props> = ({
@@ -14,6 +15,7 @@ const Navbar: React.FC<Props> = ({
   onClear,
   searchQuery,
   setSearchQuery,
+  placeholder,
 }) => {
   return (
     <nav className="bg-[var(--primary-color)] text-white shadow-md sticky top-0 z-50">
@@ -32,6 +34,7 @@ const Navbar: React.FC<Props> = ({
             onSearch={onSearch}
             value={searchQuery}
             setValue={setSearchQuery}
+            placeholder={placeholder}
           />
         </div>
 
