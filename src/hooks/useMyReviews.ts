@@ -1,6 +1,6 @@
 // src/hooks/useMyReviews.ts
 import { useState, useEffect } from 'react';
-import { getMyReviews, getBookById, saveReview } from '../services/reviews';
+import { getMyReviews, getBookById, saveReview, updateReview, deleteReview } from '../services/reviews';
 import type { Book } from '../types/Book';
 import type { Review } from '../types/Review';
 
@@ -35,8 +35,41 @@ export const useMyReviews = () => {
   };
 
   const handleSaveReview = async (bookId: string, content: string) => {
-    await saveReview(bookId, content);
-    loadMyReviews(); // Recargar después de guardar
+    const newReview = await saveReview(bookId, content);
+    
+    // Agregar la nueva reseña al estado local
+    setReviews(prev => [newReview, ...prev]);
+    
+    // Cargar info del libro si no está ya cargada
+    if (!bookInfos[newReview.google_book_id]) {
+      try {
+        const book = await getBookById(newReview.google_book_id);
+        setBookInfos(prev => ({ ...prev, [newReview.google_book_id]: book }));
+      } catch (error) {
+        console.error(`Error loading book ${newReview.google_book_id}:`, error);
+      }
+    }
+  };
+
+  const handleUpdateReview = async (reviewId: number, content: string) => {
+    const updatedReview = await updateReview(reviewId, content);
+    
+    // Actualizar la reseña en el estado local
+    setReviews(prev => prev.map(review => 
+      review.id === reviewId ? updatedReview : review
+    ));
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    try {
+      await deleteReview(reviewId);
+      
+      // Eliminar la reseña del estado local
+      setReviews(prev => prev.filter(review => review.id !== reviewId));
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      throw error; // Re-throw para que el componente pueda manejar el error
+    }
   };
 
   useEffect(() => {
@@ -48,6 +81,8 @@ export const useMyReviews = () => {
     reviewsLoading,
     bookInfos,
     handleSaveReview,
+    handleUpdateReview,
+    handleDeleteReview,
     loadMyReviews,
   };
 };
