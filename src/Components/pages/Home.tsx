@@ -1,6 +1,9 @@
 import { useState } from "react";
 import Navbar from "../organisms/Navbar";
 import BookSearch from "./BookSearch";
+import HeroSection from "../organisms/HeroSection";
+import BookCategories from "../organisms/BookCategories";
+import RandomBooksCarousel from "../organisms/RandomBooksCarousel";
 import type { Book } from "../../types/Book";
 
 export default function Home() {
@@ -35,6 +38,17 @@ export default function Home() {
     setSearchQuery(""); // limpia el texto del buscador
   };
 
+  const handleCategoryClick = (category: string) => {
+    // Realizar búsqueda por categoría
+    setSearchQuery(`subject:${category}`);
+    handleSearch(`subject:${category}`);
+  };
+
+  const handleBookSelect = (book: Book) => {
+    // Aquí podrías navegar a una página de detalles del libro
+    console.log("Libro seleccionado:", book);
+  };
+
   return (
     <div className="min-h-screen bg-[var(--background-color)] text-[var(--text-color)]">
       <Navbar
@@ -45,7 +59,18 @@ export default function Home() {
         placeholder="Buscar libros..."
       />
 
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      {!hasSearched && (
+        <>
+          <HeroSection />
+          <RandomBooksCarousel onBookSelect={handleBookSelect} />
+          <BookCategories 
+            onCategoryClick={handleCategoryClick}
+            onBookSelect={handleBookSelect}
+          />
+        </>
+      )}
+
+      <main id="search-section" className="max-w-5xl mx-auto px-6 py-8">
         <BookSearch
           books={books}
           hasSearched={hasSearched}
@@ -53,8 +78,11 @@ export default function Home() {
         />
       </main>
 
-      <footer className="bg-[var(--primary-color)] text-white text-center py-4 mt-10">
-        <p>© 2025 BookFinder. Todos los derechos reservados.</p>
+      <footer className="bg-[var(--primary-color)] text-[var(--text-on-primary)] text-center py-6 mt-16">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-lg font-medium">© 2025 BookReview</p>
+          <p className="text-sm text-[var(--text-muted)] mt-1">Descubre, lee y comparte tus libros favoritos</p>
+        </div>
       </footer>
     </div>
   );

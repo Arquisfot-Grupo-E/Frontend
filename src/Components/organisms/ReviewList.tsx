@@ -18,13 +18,18 @@ const ReviewList: React.FC<Props> = ({ reviews, bookInfos, loading, onUpdateRevi
   if (loading) {
     return (
       <div className="flex justify-center items-center h-20">
-        <div className="w-8 h-8 border-4 border-[var(--primary-color)] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-[var(--accent-color)] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (reviews.length === 0) {
-    return <p className="text-gray-500">No has hecho reseñas aún.</p>;
+    return (
+      <div className="text-center p-8 bg-[var(--card-bg-color)] rounded-lg border border-[var(--card-border-color)]">
+        <p className="text-[var(--text-color)] text-lg">No has hecho reseñas aún.</p>
+        <p className="text-[var(--text-muted)] text-sm mt-2">¡Empieza escribiendo tu primera reseña!</p>
+      </div>
+    );
   }
 
   return (

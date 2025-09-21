@@ -10,25 +10,25 @@ const BookCard: React.FC<Book> = ({
   thumbnail,
 }) => {
   return (
-    <div className="flex gap-4 p-4 bg-white rounded-lg shadow-md">
+    <div className="book-card book-card-new flex gap-4 p-4">
       {thumbnail && (
         <img
           src={thumbnail}
           alt={title}
-          className="w-20 h-28 object-cover rounded-md"
+          className="w-20 h-28 object-cover rounded-md shadow-sm"
         />
       )}
       <div className="flex flex-col">
-        <h3 className="font-bold text-lg">{title}</h3>
+        <h3 className="font-bold text-lg text-[var(--text-color)]">{title}</h3>
         {authors?.length > 0 && (
-          <p className="text-sm text-gray-600">{authors.join(", ")}</p>
+          <p className="text-sm text-[var(--text-muted)]">{authors.join(", ")}</p>
         )}
-        {publisher && <p className="text-sm text-gray-500">{publisher}</p>}
+        {publisher && <p className="text-sm text-[var(--text-muted)]">{publisher}</p>}
         {published_date && (
-          <p className="text-sm text-gray-500">{published_date}</p>
+          <p className="text-sm text-[var(--text-muted)]">{published_date}</p>
         )}
         {description && (
-          <p className="mt-2 text-sm text-gray-700 line-clamp-3">
+          <p className="mt-2 text-sm text-[var(--text-muted)] line-clamp-3">
             {description}
           </p>
         )}
