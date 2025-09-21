@@ -22,26 +22,26 @@ const BookCardSmall: React.FC<Props> = ({
 
   return (
     <div
-      className="flex gap-2 p-2 bg-white rounded-lg shadow-md max-w-xs cursor-pointer hover:shadow-lg transition"
+      className="book-card-small flex gap-2 p-2 max-w-xs cursor-pointer"
       onClick={handleClick}
     >
       {thumbnail && (
         <img
           src={thumbnail}
           alt={title}
-          className="w-12 h-16 object-cover rounded-md flex-shrink-0"
+          className="w-12 h-16 object-cover rounded-md flex-shrink-0 shadow-sm"
         />
       )}
       <div className="flex flex-col justify-center min-w-0 flex-1">
-        <h3 className="font-bold text-sm truncate">{title}</h3>
+        <h3 className="font-bold text-sm truncate text-[var(--text-color)]">{title}</h3>
         {authors?.length > 0 && (
-          <p className="text-xs text-gray-600 truncate">{authors.join(", ")}</p>
+          <p className="text-xs text-[var(--text-muted)] truncate">{authors.join(", ")}</p>
         )}
         {publisher && (
-          <p className="text-xs text-gray-500 truncate">{publisher}</p>
+          <p className="text-xs text-[var(--text-muted)] truncate">{publisher}</p>
         )}
         {published_date && (
-          <p className="text-xs text-gray-500 truncate">{published_date}</p>
+          <p className="text-xs text-[var(--text-muted)] truncate">{published_date}</p>
         )}
       </div>
     </div>

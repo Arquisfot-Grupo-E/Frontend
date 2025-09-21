@@ -91,7 +91,7 @@ const MyReviews: React.FC = () => {
       } else if (typeof error === 'string') {
         message = error;
       } else if (error && typeof error === 'object' && 'detail' in error) {
-        message = (error as any).detail;
+        message = (error as { detail: string }).detail;
       }
       
       alert(message);
@@ -99,40 +99,62 @@ const MyReviews: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background-color)] text-[var(--text-color)]">
+    <div className="min-h-screen bg-[var(--background-color)]">
       <div className="max-w-5xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold mb-6">Mis Reseñas</h1>
-
-        <div className="mb-6 flex items-center gap-4">
-          <SearchBar
-            onSearch={handleSearch}
-            value={searchQueryBody}
-            setValue={setSearchQueryBody}
-            placeholder="Buscar libros..."
-          />
-          <button
-            onClick={handleClear}
-            className="p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition"
-            title="Limpiar búsqueda"
-          >
-            <X size={20} className="text-gray-600" />
-          </button>
+        {/* Header */}
+        <div className="bg-[var(--card-bg-color)] rounded-lg p-6 mb-8 border border-[var(--card-border-color)]">
+          <h1 className="text-3xl font-bold mb-2 text-[var(--text-color)]">Mis Reseñas</h1>
+          <p className="text-[var(--text-muted)]">Gestiona tus reseñas y descubre nuevos libros</p>
         </div>
 
+        {/* Search Section */}
+        <div className="bg-[var(--card-bg-color)] rounded-lg p-6 mb-6 shadow-md border border-[var(--card-border-color)]">
+          <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">Buscar libros para reseñar</h2>
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <SearchBar
+                onSearch={handleSearch}
+                value={searchQueryBody}
+                setValue={setSearchQueryBody}
+                placeholder="Buscar libros..."
+              />
+            </div>
+            <button
+              onClick={handleClear}
+              className="p-3 bg-[var(--card-border-color)] hover:bg-[var(--accent-color)] hover:text-[var(--text-on-primary)] rounded-full transition-colors duration-200 border border-[var(--card-border-color)]"
+              title="Limpiar búsqueda"
+            >
+              <X size={20} className="text-[var(--text-color)]" />
+            </button>
+          </div>
+        </div>
+
+        {/* Loading State */}
         {isLoading && (
-          <div className="flex justify-center items-center h-40">
-            <div className="w-10 h-10 border-4 border-[var(--primary-color)] border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex justify-center items-center h-40 bg-[var(--card-bg-color)] rounded-lg mb-6">
+            <div className="w-10 h-10 border-4 border-[var(--accent-color)] border-t-transparent rounded-full animate-spin"></div>
+            <p className="ml-4 text-[var(--text-color)]">Buscando libros...</p>
           </div>
         )}
 
+        {/* Search Results */}
         {hasSearched && !isLoading && !selectedBook && (
-          <BookGridSmall books={books} onSelectBook={handleSelectBook} />
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-[var(--text-color)] mb-3">
+              Resultados de búsqueda ({books.length} libros)
+            </h3>
+            <BookGridSmall books={books} onSelectBook={handleSelectBook} />
+          </div>
         )}
 
+        {/* Review Form */}
         <ReviewForm selectedBook={selectedBook} onSaveReview={handleSaveReview} />
 
+        {/* My Reviews List */}
         <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">Mis Reseñas</h2>
+          <div className="bg-[var(--card-bg-color)] rounded-lg p-4 mb-6 border border-[var(--card-border-color)]">
+            <h2 className="text-xl font-bold text-[var(--text-color)]">Mis Reseñas Publicadas</h2>
+          </div>
           <ReviewList 
             reviews={reviews} 
             bookInfos={bookInfos} 
