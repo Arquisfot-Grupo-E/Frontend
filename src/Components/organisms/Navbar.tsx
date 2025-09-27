@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import SearchBar from "../molecules/SearchBar";
-import { User, UserPlus, LogOut } from "lucide-react";
+import { User, UserPlus, LogOut, FileText } from "lucide-react";
 import AuthModal, { type AuthModalMode } from "./AuthModal";
 import { useAuth, type User as UserType } from "../../services/auth";
 import { useToast } from "../../contexts/ToastContext";
+import { useNavigate } from 'react-router-dom';
 
 type Props = {
   onSearch: (q: string) => void;
@@ -26,6 +27,7 @@ const Navbar: React.FC<Props> = ({
   
   const { isAuthenticated, logout, getCachedUser } = useAuth();
   const { showInfo } = useToast();
+  const navigate = useNavigate();
 
   // Cargar usuario al montar el componente
   useEffect(() => {
@@ -105,6 +107,13 @@ const Navbar: React.FC<Props> = ({
                     {user.first_name} {user.last_name}
                   </span>
                 </div>
+                <button
+                  onClick={() => navigate('/my-reviews')}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--card-bg-color)] text-[var(--accent-color)] font-medium hover:bg-[var(--card-border-color)] hover:text-[var(--primary-color)] transition-all duration-200 shadow-sm"
+                >
+                  <FileText size={18} />
+                  <span className="hidden sm:inline">Mis reseñas</span>
+                </button>
                 <button 
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--error-color)] text-white font-medium hover:bg-[var(--error-hover)] transition-all duration-200 shadow-sm"
