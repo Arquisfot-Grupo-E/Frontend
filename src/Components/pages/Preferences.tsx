@@ -4,12 +4,12 @@ import { useAuth } from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
 
 const GENRES = [
-  { key: 'fiction', label: 'Fiction' },
-  { key: 'science', label: 'Science' },
-  { key: 'history', label: 'History' },
-  { key: 'bography', label: 'Biography' },
-  { key: 'romance', label: 'Romance' },
-  { key: 'mistery', label: 'Mystery' },
+  { key: 'Fiction', label: 'Fiction' },
+  { key: 'Science', label: 'Science' },
+  { key: 'History', label: 'History' },
+  { key: 'Biography', label: 'Biography' },
+  { key: 'Romance', label: 'Romance' },
+  { key: 'Mystery', label: 'Mystery' },
 ];
 
 type ImagesMap = Record<string, string | undefined>;
@@ -22,9 +22,9 @@ const Preferences: React.FC = () => {
     fiction: '/images/fiction.jpg',
     science: '/images/science.jpg',
     history: '/images/history.jpg',
-    bography: '/images/biography.png',
+    biography: '/images/biography.png',
     romance: '/images/romance.png', // ya existe en public/images
-    mistery: '/images/mistery.jpg',
+    mystery: '/images/mistery.jpg',
   };
   const images = IMAGES;
 
@@ -187,12 +187,12 @@ const Preferences: React.FC = () => {
 
 function getGenreDescription(key: string) {
   switch (key) {
-    case 'fiction': return 'Historias imaginativas, mundos y personajes memorables.';
-    case 'science': return 'Divulgación, descubrimientos y avances científicos.';
-    case 'history': return 'Relatos del pasado, biografías históricas y contextos sociales.';
-    case 'bography': return 'Vida de personas influyentes y relatos personales.';
-    case 'romance': return 'Historias de amor, relaciones y emociones intensas.';
-    case 'mistery': return 'Suspenso, investigación y giros inesperados.';
+    case 'Fiction': return 'Historias imaginativas, mundos y personajes memorables.';
+    case 'Science': return 'Divulgación, descubrimientos y avances científicos.';
+    case 'History': return 'Relatos del pasado, biografías históricas y contextos sociales.';
+    case 'Biography': return 'Vida de personas influyentes y relatos personales.';
+    case 'Romance': return 'Historias de amor, relaciones y emociones intensas.';
+    case 'Mystery': return 'Suspenso, investigación y giros inesperados.';
     default: return '';
   }
 }
