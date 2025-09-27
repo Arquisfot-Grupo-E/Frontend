@@ -3,6 +3,7 @@ import { Mail, Lock, User, FileText } from "lucide-react";
 import FormInput from "../atoms/FormInput";
 import FormButton from "../atoms/FormButton";
 import { useAuth, type RegisterData } from "../../services/auth";
+import { useNavigate } from 'react-router-dom';
 import { useToast } from "../../contexts/ToastContext";
 
 type Props = {
@@ -24,6 +25,7 @@ const RegisterForm: React.FC<Props> = ({ onSuccess, onSwitchToLogin }) => {
   
   const { register } = useAuth();
   const { showSuccess, showError } = useToast();
+  const navigate = useNavigate();
 
   const validateForm = (): boolean => {
     const newErrors: Partial<RegisterData & { confirmPassword: string }> = {};
@@ -72,7 +74,9 @@ const RegisterForm: React.FC<Props> = ({ onSuccess, onSwitchToLogin }) => {
         "¡Cuenta creada exitosamente!",
         `Bienvenido ${formData.first_name}, tu cuenta ha sido registrada`
       );
-      
+
+      // Redirigir a preferencias y notificar al componente padre
+      navigate('/preferences');
       onSuccess?.();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error al registrar usuario";
