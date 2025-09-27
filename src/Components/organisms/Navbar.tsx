@@ -71,7 +71,7 @@ const Navbar: React.FC<Props> = ({
     );
     
     // Opcional: recargar la página o redirigir
-    window.location.reload();
+    navigate('/');
   };
 
   return (
