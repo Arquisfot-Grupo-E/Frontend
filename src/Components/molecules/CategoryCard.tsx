@@ -18,30 +18,24 @@ const CategoryCard: React.FC<Props> = ({
   return (
     <button
       onClick={handleClick}
-      className={`w-full p-6 rounded-xl border-2 transition-all duration-300 text-left group hover:shadow-xl ${
+      className={`w-full p-3 rounded-md border transition-all duration-300 text-center group hover:shadow-md ${
         isSelected
-          ? 'border-[var(--accent-color)] bg-gradient-to-br from-[var(--accent-color)] to-[var(--primary-color)] text-white shadow-lg'
-          : 'border-[var(--card-border-color)] bg-[var(--card-bg-color)] hover:border-[var(--accent-color)] text-[var(--text-color)]'
+          ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white shadow-md transform scale-105'
+          : 'border-gray-300 bg-white hover:border-[var(--primary-color)] hover:bg-[var(--primary-color)] hover:text-white text-[var(--text-color)]'
       }`}
     >
-      <div className="flex items-center justify-between">
-        <h3 className={`text-2xl font-bold transition-colors duration-200 ${
-          isSelected ? 'text-white' : 'text-[var(--text-color)] group-hover:text-[var(--accent-color)]'
+      <div className="flex flex-col items-center gap-1">
+        <div className={`text-sm transition-transform duration-200 ${
+          isSelected ? 'scale-110' : 'group-hover:scale-110'
+        }`}>
+          📚
+        </div>
+        <h3 className={`text-xs font-medium transition-colors duration-200 leading-tight text-center ${
+          isSelected ? 'text-white' : 'text-gray-700 group-hover:text-white'
         }`}>
           {categoryName}
         </h3>
-        <div className={`text-2xl transition-transform duration-200 ${
-          isSelected ? 'rotate-180' : 'group-hover:scale-110'
-        }`}>
-          {isSelected ? '▲' : '📚'}
-        </div>
       </div>
-      
-      <p className={`mt-2 text-sm ${
-        isSelected ? 'text-white/80' : 'text-[var(--text-muted)]'
-      }`}>
-        {isSelected ? 'Haz clic para cerrar' : 'Haz clic para explorar libros'}
-      </p>
     </button>
   );
 };
