@@ -39,51 +39,73 @@ const Preferences: React.FC = () => {
   const navigate = useNavigate();
   const { authenticatedFetch, isAuthenticated } = useAuth();
   const { showSuccess, showError } = useToast();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const startIfReady = async () => {
-    // Si el usuario está autenticado, confirmar preferencias en backend
-    if (isAuthenticated && isAuthenticated()) {
-      try {
-        const res = await authenticatedFetch('http://localhost:8001/api/accounts/confirm-preferences/', {
-          method: 'POST'
-        });
+    if (selected.length !== 3) return;
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({ detail: 'Error confirmando preferencias' }));
-          showError('Error', data.detail || 'No se pudo confirmar preferencias');
-          return;
-        }
-
-        // Actualizar localStorage.user_data para marcar has_selected_preferences = true
-        try {
-          const raw = localStorage.getItem('user_data');
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            const userObj = parsed.user ?? parsed;
-            userObj.has_selected_preferences = true;
-            // Escribir de vuelta manteniendo la posible forma { user: ... }
-            if (parsed.user) {
-              parsed.user = userObj;
-              localStorage.setItem('user_data', JSON.stringify(parsed));
-            } else {
-              localStorage.setItem('user_data', JSON.stringify(userObj));
-            }
-          }
-        } catch (err) {
-          // ignore json errors
-        }
-
-        showSuccess('Listo', 'Preferencias confirmadas. ¡Bienvenido al feed!');
-        navigate('/feed');
-        return;
-      } catch (err) {
-        showError('Error', (err as Error).message || 'Error al confirmar preferencias');
-        return;
-      }
+    if (!isAuthenticated || !isAuthenticated()) {
+      showError('Autenticación requerida', 'Debes iniciar sesión para guardar tus preferencias.');
+      navigate('/');
+      return;
     }
 
-    // Si no está autenticado, simplemente navegar al feed (o pedir login)
-    navigate('/feed');
+    setIsSubmitting(true);
+
+    try {
+      // 1) Enviar los géneros al servicio de recomendaciones (puerto 8002)
+      const recRes = await authenticatedFetch('http://localhost:8002/api/v1/user/genres', {
+        method: 'POST',
+        body: JSON.stringify({ genres: selected }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!recRes.ok) {
+        const errData = await recRes.json().catch(() => ({ detail: 'Error enviando géneros' }));
+        showError('Error', errData.detail || 'No se pudieron enviar los géneros al servicio de recomendaciones');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 2) Confirmar en el backend de usuarios que ya seleccionó preferencias
+      const confirmRes = await authenticatedFetch('http://localhost:8001/api/accounts/confirm-preferences/', {
+        method: 'POST'
+      });
+
+      if (!confirmRes.ok) {
+        const data = await confirmRes.json().catch(() => ({ detail: 'Error confirmando preferencias' }));
+        showError('Error', data.detail || 'No se pudo confirmar preferencias');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Actualizar localStorage.user_data para marcar has_selected_preferences = true
+      try {
+        const raw = localStorage.getItem('user_data');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const userObj = parsed.user ?? parsed;
+          userObj.has_selected_preferences = true;
+          if (parsed.user) {
+            parsed.user = userObj;
+            localStorage.setItem('user_data', JSON.stringify(parsed));
+          } else {
+            localStorage.setItem('user_data', JSON.stringify(userObj));
+          }
+        }
+      } catch (err) {
+        // ignore json errors
+      }
+
+      showSuccess('Listo', 'Preferencias guardadas y confirmadas. ¡Bienvenido al feed!');
+      navigate('/feed');
+    } catch (err) {
+      showError('Error', (err as Error).message || 'Ocurrió un error procesando tus preferencias');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   
