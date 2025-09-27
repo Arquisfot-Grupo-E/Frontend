@@ -23,7 +23,7 @@ const RegisterForm: React.FC<Props> = ({ onSuccess, onSwitchToLogin }) => {
   const [errors, setErrors] = useState<Partial<RegisterData & { confirmPassword: string }>>({});
   const [isLoading, setIsLoading] = useState(false);
   
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
@@ -68,11 +68,22 @@ const RegisterForm: React.FC<Props> = ({ onSuccess, onSwitchToLogin }) => {
     setIsLoading(true);
     try {
       await register(formData);
-      
+
+      // Después de registrar, iniciar sesión automáticamente con las mismas credenciales
+      try {
+        await login({ email: formData.email, password: formData.password });
+      } catch (loginErr) {
+        // Si el login automático falla, mostrar mensaje pero permitir que el usuario proceda a login manual
+        showError('Registro completo', 'Cuenta creada, pero no se pudo iniciar sesión automáticamente. Por favor inicia sesión.');
+        navigate('/preferences');
+        onSuccess?.();
+        return;
+      }
+
       // Mostrar toast de éxito
       showSuccess(
-        "¡Cuenta creada exitosamente!",
-        `Bienvenido ${formData.first_name}, tu cuenta ha sido registrada`
+        "¡Cuenta creada y autenticada!",
+        `Bienvenido ${formData.first_name}, tu cuenta ha sido registrada y has iniciado sesión`
       );
 
       // Redirigir a preferencias y notificar al componente padre

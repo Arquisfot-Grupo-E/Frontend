@@ -100,14 +100,33 @@ class AuthService {
     }
 
     const authResponse: AuthResponse = await response.json();
-    
+
     // Guardar tokens
     this.saveTokensToStorage({
       access: authResponse.access,
       refresh: authResponse.refresh,
     });
 
-    return authResponse;
+    // Si la respuesta ya incluye información del usuario (o un wrapper), normalizar y devolverla
+    try {
+      const possibleUser = (authResponse as any).user ?? (authResponse as any).data ?? null;
+      if (possibleUser) {
+        // Guardar también en localStorage la estructura completa para consistencia
+        localStorage.setItem('user_data', JSON.stringify(possibleUser));
+        return { ...authResponse, user: possibleUser };
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    // Si no vino user en la respuesta, intentar obtenerlo desde el endpoint de perfil
+    try {
+      const user = await this.getCurrentUser();
+      return { ...authResponse, user };
+    } catch (err) {
+      // Si falla obtener perfil, igual devolvemos tokens para que el frontend pueda continuar
+      return authResponse;
+    }
   }
 
   // Logout
@@ -195,14 +214,18 @@ class AuthService {
   // Obtener perfil del usuario actual
   async getCurrentUser(): Promise<User> {
     const response = await this.authenticatedFetch(`${API_BASE_URL}/api/accounts/profile/`);
-    
+
     if (!response.ok) {
       throw new Error('Error obteniendo perfil de usuario');
     }
 
-    const user = await response.json();
-    localStorage.setItem('user_data', JSON.stringify(user));
-    return user;
+    const data = await response.json();
+    // Guardar la respuesta cruda para depuración/UI (puede venir { user: {...}, ... })
+    localStorage.setItem('user_data', JSON.stringify(data));
+
+    // Normalizar: si el backend devuelve { user: {...} } devolver el inner user
+    const normalized = (data && (data as any).user) ? (data as any).user : data;
+    return normalized as User;
   }
 
   // Obtener datos del usuario desde localStorage
@@ -224,5 +247,9 @@ export const useAuth = () => {
     isAuthenticated: authService.isAuthenticated.bind(authService),
     getCurrentUser: authService.getCurrentUser.bind(authService),
     getCachedUser: authService.getCachedUser.bind(authService),
+    // Helpers útiles para llamadas autenticadas
+    getAccessToken: authService.getAccessToken.bind(authService),
+    authenticatedFetch: authService.authenticatedFetch.bind(authService),
+    refreshAccessToken: authService.refreshAccessToken.bind(authService),
   };
 };

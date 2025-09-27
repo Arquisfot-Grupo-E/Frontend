@@ -33,7 +33,10 @@ const Navbar: React.FC<Props> = ({
       const cachedUser = getCachedUser();
       setUser(cachedUser);
     }
-  }, [isAuthenticated, getCachedUser]);
+  // Ejecutar solo al montar: `isAuthenticated` y `getCachedUser` vienen de `useAuth()`
+  // y sus referencias no son estables entre renders, lo que provocaba un bucle.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLoginClick = () => {
     setAuthModalMode('login');
