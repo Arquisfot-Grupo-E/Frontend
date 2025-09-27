@@ -19,12 +19,12 @@ const Preferences: React.FC = () => {
   // Las imágenes para cada género se obtienen desde la carpeta public/images.
   // No se usa localStorage: todo se carga desde archivos estáticos.
   const IMAGES: ImagesMap = {
-    fiction: '/images/fiction.jpg',
-    science: '/images/science.jpg',
-    history: '/images/history.jpg',
-    biography: '/images/biography.png',
-    romance: '/images/romance.png', // ya existe en public/images
-    mystery: '/images/mistery.jpg',
+    Fiction: '/images/fiction.jpg',
+    Science: '/images/science.jpg',
+    History: '/images/history.jpg',
+    Biography: '/images/biography.png',
+    Romance: '/images/romance.png', // ya existe en public/images
+    Mystery: '/images/mistery.jpg',
   };
   const images = IMAGES;
 
