@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Navbar from "../organisms/Navbar";
-import BookSearch from "./BookSearch";
+import BookSearch from "../organisms/BookSearch";
 import HeroSection from "../organisms/HeroSection";
 import BookCategories from "../organisms/BookCategories";
 import RandomBooksCarousel from "../organisms/RandomBooksCarousel";
