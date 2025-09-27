@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../services/auth';
+import { useToast } from '../../contexts/ToastContext';
 
 const GENRES = [
   { key: 'fiction', label: 'Fiction' },
@@ -35,8 +37,52 @@ const Preferences: React.FC = () => {
   };
 
   const navigate = useNavigate();
+  const { authenticatedFetch, isAuthenticated } = useAuth();
+  const { showSuccess, showError } = useToast();
 
-  const startIfReady = () => {
+  const startIfReady = async () => {
+    // Si el usuario está autenticado, confirmar preferencias en backend
+    if (isAuthenticated && isAuthenticated()) {
+      try {
+        const res = await authenticatedFetch('http://localhost:8001/api/accounts/confirm-preferences/', {
+          method: 'POST'
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({ detail: 'Error confirmando preferencias' }));
+          showError('Error', data.detail || 'No se pudo confirmar preferencias');
+          return;
+        }
+
+        // Actualizar localStorage.user_data para marcar has_selected_preferences = true
+        try {
+          const raw = localStorage.getItem('user_data');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const userObj = parsed.user ?? parsed;
+            userObj.has_selected_preferences = true;
+            // Escribir de vuelta manteniendo la posible forma { user: ... }
+            if (parsed.user) {
+              parsed.user = userObj;
+              localStorage.setItem('user_data', JSON.stringify(parsed));
+            } else {
+              localStorage.setItem('user_data', JSON.stringify(userObj));
+            }
+          }
+        } catch (err) {
+          // ignore json errors
+        }
+
+        showSuccess('Listo', 'Preferencias confirmadas. ¡Bienvenido al feed!');
+        navigate('/feed');
+        return;
+      } catch (err) {
+        showError('Error', (err as Error).message || 'Error al confirmar preferencias');
+        return;
+      }
+    }
+
+    // Si no está autenticado, simplemente navegar al feed (o pedir login)
     navigate('/feed');
   };
 

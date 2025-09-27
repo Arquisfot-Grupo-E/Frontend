@@ -4,6 +4,7 @@ import FormInput from "../atoms/FormInput";
 import FormButton from "../atoms/FormButton";
 import { useAuth, type LoginCredentials } from "../../services/auth";
 import { useToast } from "../../contexts/ToastContext";
+import { useNavigate } from 'react-router-dom';
 
 type Props = {
   onSuccess?: () => void;
@@ -20,6 +21,7 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister }) => {
   
   const { login } = useAuth();
   const { showSuccess, showError } = useToast();
+  const navigate = useNavigate();
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginCredentials> = {};
@@ -45,14 +47,43 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister }) => {
 
     setIsLoading(true);
     try {
-      await login(formData);
-      
+      const resp = await login(formData);
+
       // Mostrar toast de éxito
       showSuccess(
-        "¡Bienvenido de vuelta!", 
+        "¡Bienvenido de vuelta!",
         "Has iniciado sesión correctamente"
       );
-      
+
+      // Determinar si el usuario ya seleccionó preferencias.
+      // Priorizar la respuesta del login si contiene `user`.
+      let hasSelected: boolean | undefined = undefined;
+      if (resp && (resp as any).user) {
+        hasSelected = (resp as any).user.has_selected_preferences ?? (resp as any).user.hasSelectedPreferences;
+      }
+
+      // Si no vino en la respuesta, intentar leer localStorage
+      if (hasSelected === undefined) {
+        try {
+          const raw = localStorage.getItem('user_data');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            // soportar wrapper { user: {...} } o directamente el user object
+            const userObj = parsed.user ?? parsed;
+            hasSelected = userObj?.has_selected_preferences ?? userObj?.hasSelectedPreferences;
+          }
+        } catch (err) {
+          // ignore parse errors
+        }
+      }
+
+      // Redirigir según la bandera; si undefined llevar a feed por defecto
+      if (hasSelected === false) {
+        navigate('/preferences');
+      } else {
+        navigate('/feed');
+      }
+
       onSuccess?.();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error al iniciar sesión";
