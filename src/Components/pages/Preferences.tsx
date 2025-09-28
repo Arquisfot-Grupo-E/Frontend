@@ -81,6 +81,20 @@ const Preferences: React.FC = () => {
         return;
       }
 
+      // Enviar los géneros al endpoint de users para persistir preferred_genres
+      const userUpdateRes = await authenticatedFetch('http://localhost:8001/api/accounts/profile/genres/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferred_genres: selected }),
+      });
+
+      if (!userUpdateRes.ok) {
+        const userErr = await userUpdateRes.json().catch(() => ({ detail: 'Error actualizando géneros' }));
+        showError('Error', userErr.detail || 'No se pudieron actualizar los géneros en el servicio de usuarios');
+        setIsSubmitting(false);
+        return;
+      }
+
       // Actualizar localStorage.user_data para marcar has_selected_preferences = true
       try {
         const raw = localStorage.getItem('user_data');
@@ -88,6 +102,7 @@ const Preferences: React.FC = () => {
           const parsed = JSON.parse(raw);
           const userObj = parsed.user ?? parsed;
           userObj.has_selected_preferences = true;
+          userObj.preferred_genres = selected;
           if (parsed.user) {
             parsed.user = userObj;
             localStorage.setItem('user_data', JSON.stringify(parsed));
@@ -175,7 +190,9 @@ const Preferences: React.FC = () => {
             <div className="text-sm text-[var(--text-muted)]">Has seleccionado 3 géneros.</div>
           </div>
           <div>
-            <button onClick={startIfReady} className="btn-primary px-4 py-2 rounded-md">Siguiente</button>
+            <button onClick={startIfReady} disabled={isSubmitting} className="btn-primary px-4 py-2 rounded-md">
+              {isSubmitting ? 'Enviando...' : 'Siguiente'}
+            </button>
           </div>
         </div>
       )}
