@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import LoginForm from "../molecules/LoginForm";
 import RegisterForm from "../molecules/RegisterForm";
+import ResetPasswordForm from "../molecules/ResetPasswordForm";
 
-export type AuthModalMode = 'login' | 'register';
+export type AuthModalMode = 'login' | 'register' | 'password-recovery';
 
 type Props = {
   isOpen: boolean;
@@ -79,19 +80,24 @@ const AuthModal: React.FC<Props> = ({
         </button>
 
         {/* Contenido del modal */}
-        <div className="p-8 pt-12">
-          {mode === 'login' ? (
-            <LoginForm 
-              onSuccess={handleAuthSuccess}
-              onSwitchToRegister={() => setMode('register')}
-            />
-          ) : (
-            <RegisterForm 
-              onSuccess={handleAuthSuccess}
-              onSwitchToLogin={() => setMode('login')}
-            />
-          )}
-        </div>
+       <div className="p-8 pt-12">
+         {mode === 'login' ? (
+           <LoginForm
+             onSuccess={handleAuthSuccess}
+             onSwitchToRegister={() => setMode('register')}
+             onSwitchToPasswordRecovery={() => setMode('password-recovery')}
+           />
+         ) : mode === 'register' ? (
+           <RegisterForm
+             onSuccess={handleAuthSuccess}
+             onSwitchToLogin={() => setMode('login')}
+           />
+         ) : (
+           <ResetPasswordForm
+             onBackToLogin={() => setMode('login')}
+           />
+         )}
+       </div>
 
         {/* Indicador visual del modo */}
         <div className="flex border-t border-[var(--card-border-color)]">

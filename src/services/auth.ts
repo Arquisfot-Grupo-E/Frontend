@@ -129,6 +129,46 @@ class AuthService {
     }
   }
 
+  // Reset password - enviar email de recuperación
+ async resetPassword(email: string): Promise<void> {
+   const response = await fetch(`${API_BASE_URL}/api/accounts/password-reset/`, {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+     },
+     body: JSON.stringify({ email }),
+   });
+
+
+   if (!response.ok) {
+     const errorData = await response.json().catch(() => ({ detail: 'Error al enviar el email' }));
+     throw new Error(errorData.detail || errorData.email?.[0] || 'Usuario no encontrado');
+   }
+ }
+
+
+ // Confirm password reset - confirmar con token y nueva contraseña
+ async confirmPasswordReset(uidb64: string, token: string, newPassword: string): Promise<void> {
+   const response = await fetch(`${API_BASE_URL}/api/accounts/password-reset-confirm/`, {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+     },
+     body: JSON.stringify({
+       uidb64,
+       token,
+       new_password: newPassword
+     }),
+   });
+
+
+   if (!response.ok) {
+     const errorData = await response.json().catch(() => ({ detail: 'Error al restablecer la contraseña' }));
+     throw new Error(errorData.detail || errorData.new_password?.[0] || 'Token inválido o contraseña débil');
+   }
+ }
+
+
   // Logout
   logout() {
     this.clearTokensFromStorage();
@@ -243,6 +283,8 @@ export const useAuth = () => {
   return {
     login: authService.login.bind(authService),
     register: authService.register.bind(authService),
+     resetPassword: authService.resetPassword.bind(authService),
+   confirmPasswordReset: authService.confirmPasswordReset.bind(authService),
     logout: authService.logout.bind(authService),
     isAuthenticated: authService.isAuthenticated.bind(authService),
     getCurrentUser: authService.getCurrentUser.bind(authService),

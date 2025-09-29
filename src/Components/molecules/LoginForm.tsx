@@ -9,9 +9,10 @@ import { useNavigate } from 'react-router-dom';
 type Props = {
   onSuccess?: () => void;
   onSwitchToRegister?: () => void;
+  onSwitchToPasswordRecovery?: () => void;
 };
 
-const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister }) => {
+const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister,onSwitchToPasswordRecovery  }) => {
   const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
     password: "",
@@ -143,6 +144,17 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister }) => {
           icon={<Lock size={20} />}
           autoComplete="current-password"
         />
+
+        <div className="mt-4 text-center">
+         <button
+           type="button"
+           onClick={onSwitchToPasswordRecovery}
+           className="text-[var(--accent-color)] hover:text-[var(--accent-hover)] font-medium transition-colors duration-200 text-sm"
+         >
+           ¿Olvidaste tu contraseña?
+         </button>
+       </div>
+
 
         <FormButton
           type="submit"
