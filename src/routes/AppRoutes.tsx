@@ -4,6 +4,7 @@ import MyReviews from "../Components/pages/MyReviews";
 import Preferences from "../Components/pages/Preferences";
 import Feed from "../Components/pages/Feed";
 import Profile from "../Components/pages/Profile";
+import ProfileEdit from "../Components/pages/ProfileEdit";
 
 const AppRoutes = () => {
   return (
@@ -13,6 +14,7 @@ const AppRoutes = () => {
       <Route path="/my-reviews" element={<MyReviews />} />
       <Route path="/feed" element={<Feed />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/profile/edit" element={<ProfileEdit />} />
     </Routes>
   );
 };
