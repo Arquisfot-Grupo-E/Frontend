@@ -4,6 +4,8 @@ import MyReviews from "../Components/pages/MyReviews";
 import PasswordResetConfirm from "../Components/pages/PasswordResetConfirm";
 import Preferences from "../Components/pages/Preferences";
 import Feed from "../Components/pages/Feed";
+import Profile from "../Components/pages/Profile";
+import ProfileEdit from "../Components/pages/ProfileEdit";
 
 
 const AppRoutes = () => {
@@ -14,6 +16,8 @@ const AppRoutes = () => {
       <Route path="/my-reviews" element={<MyReviews />} />
       <Route path="/reset-password-confirm/:uidb64/:token" element={<PasswordResetConfirm />} />
       <Route path="/feed" element={<Feed />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/profile/edit" element={<ProfileEdit />} />
     </Routes>
   );
 };

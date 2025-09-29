@@ -101,12 +101,16 @@ const Navbar: React.FC<Props> = ({
             {user ? (
               // Usuario autenticado
               <>
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg bg-white/10">
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition"
+                  title="Mi perfil"
+                >
                   <User size={16} />
                   <span className="text-sm font-medium">
                     {user.first_name} {user.last_name}
                   </span>
-                </div>
+                </button>
                 <button
                   onClick={() => navigate('/my-reviews')}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--card-bg-color)] text-[var(--accent-color)] font-medium hover:bg-[var(--card-border-color)] hover:text-[var(--primary-color)] transition-all duration-200 shadow-sm"
