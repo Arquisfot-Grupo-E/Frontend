@@ -80,7 +80,7 @@ const Preferences: React.FC = () => {
         setIsSubmitting(false);
         return;
       }
-
+      
       // Enviar los géneros al endpoint de users para persistir preferred_genres
       const userUpdateRes = await authenticatedFetch('http://localhost:8001/api/accounts/profile/genres/', {
         method: 'POST',
