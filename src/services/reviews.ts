@@ -39,7 +39,7 @@ export const getMyReviews = async (): Promise<Review[]> => {
 };
 
 export const getBookById = async (id: string): Promise<Book> => {
-  const response = await fetch(`${API_BASE}/books/${id}`, {
+  const response = await fetch(`${API_BASE}/books/id/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
