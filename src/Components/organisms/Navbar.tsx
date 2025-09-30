@@ -74,6 +74,87 @@ const Navbar: React.FC<Props> = ({
     navigate('/');
   };
 
+  const handleSearch = async (q: string) => {
+    onSearch(q); // sigue mostrando resultados normalmente
+
+    // Buscar libros en el backend de reviews (no Google Books directamente)
+    try {
+      console.log("[search] Iniciando búsqueda con query:", q);
+
+      const res = await fetch(
+        `http://localhost:8000/books/search?q=${encodeURIComponent(
+          q
+        )}&maxResults=1`
+      );
+      console.log("[search] Status búsqueda libros:", res.status);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("[search] Error al buscar libros:", errorText);
+        return;
+      }
+
+      const books = await res.json();
+      console.log("[search] Libros recibidos:", books);
+
+      const firstBook =
+        Array.isArray(books) && books.length > 0
+          ? books[0]
+          : Array.isArray(books?.items) && books.items.length > 0
+          ? books.items[0]
+          : null;
+
+      if (firstBook) {
+        const bookPayload = {
+          bookId: firstBook.id ?? firstBook.bookId,
+          title: firstBook.title,
+          authors: firstBook.authors ?? [],
+          categories: firstBook.categories ?? firstBook.subjects ?? [],
+          publishedDate:
+            firstBook.published_date ?? firstBook.publishedDate ?? "",
+          description: firstBook.description ?? "",
+        };
+
+        console.log("[search] Payload preparado para backend:", bookPayload);
+
+        const token = localStorage.getItem("access_token");
+        console.log("[search] Token encontrado:", token);
+
+        if (token) {
+          const searchRes = await fetch(
+            "http://localhost:8002/api/v1/user/search_book",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(bookPayload),
+            }
+          );
+
+          console.log("[search] Status POST search_book:", searchRes.status);
+
+          if (!searchRes.ok) {
+            const errorText = await searchRes.text();
+            console.error("[search] Error en POST search_book:", errorText);
+            return;
+          }
+
+          const data = await searchRes.json();
+          console.log("[search] Respuesta backend search_book:", data);
+        } else {
+          console.warn("[search] No hay token, no se envía al backend");
+        }
+      } else {
+        console.warn("[search] No se encontró ningún libro para query:", q);
+      }
+    } catch (err) {
+      console.error("[search] Error general:", err);
+      // showInfo('No se pudo registrar la búsqueda');
+    }
+  };
+
   return (
     <>
       <nav className="bg-[var(--primary-color)] text-[var(--text-on-primary)] shadow-lg sticky top-0 z-50">
@@ -89,7 +170,7 @@ const Navbar: React.FC<Props> = ({
           {/* Barra de búsqueda */}
           <div className="flex-1 flex justify-center">
             <SearchBar
-              onSearch={onSearch}
+              onSearch={handleSearch}
               value={searchQuery}
               setValue={setSearchQuery}
               placeholder={placeholder}

@@ -5,12 +5,14 @@ import HeroSection from "../organisms/HeroSection";
 import BookCategories from "../organisms/BookCategories";
 import RandomBooksCarousel from "../organisms/RandomBooksCarousel";
 import type { Book } from "../../types/Book";
+import { useAuth } from '../../services/auth';
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // controla el texto del input
+  const { getAccessToken } = useAuth();
 
   const handleSearch = async (query: string) => {
     try {
@@ -23,6 +25,31 @@ export default function Home() {
       if (!res.ok) throw new Error("Error en la búsqueda");
       const data: Book[] = await res.json();
       setBooks(data);
+
+      // Registrar búsqueda en recomendaciones SOLO si hay resultados y usuario autenticado
+      if (data.length > 0) {
+        const firstBook = data[0];
+        const token = getAccessToken();
+        if (token) {
+          // Construir el payload solo con los campos existentes
+          const bookPayload = {
+            bookId: firstBook.id,
+            title: firstBook.title,
+            authors: firstBook.authors ?? [],
+            categories: [], // El backend de recomendaciones espera este campo, aunque esté vacío
+            publishedDate: firstBook.published_date ?? "",
+            description: firstBook.description ?? "",
+          };
+          await fetch("http://localhost:8002/api/v1/user/search_book", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(bookPayload),
+          });
+        }
+      }
     } catch (error) {
       console.error("Error fetching books", error);
       setBooks([]);
