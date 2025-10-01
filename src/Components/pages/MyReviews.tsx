@@ -6,6 +6,7 @@ import ReviewForm from "../organisms/ReviewForm";
 import ReviewList from "../organisms/ReviewList";
 import { useMyReviews } from "../../hooks/useMyReviews";
 import type { Book } from "../../types/Book";
+import Navbar from '../organisms/Navbar';
 
 const MyReviews: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
@@ -100,7 +101,15 @@ const MyReviews: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[var(--background-color)]">
+      <Navbar
+            onSearch={() => {}}
+            onClear={() => {}}
+            searchQuery={""}
+            setSearchQuery={() => {}}
+            placeholder="Buscar libros..."
+        />
       <div className="max-w-5xl mx-auto px-6 py-8">
+        
         {/* Header */}
         <div className="bg-[var(--card-bg-color)] rounded-lg p-6 mb-8 border border-[var(--card-border-color)]">
           <h1 className="text-3xl font-bold mb-2 text-[var(--text-color)]">Mis Reseñas</h1>
