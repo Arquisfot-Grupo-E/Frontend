@@ -4,58 +4,39 @@ import { useAuth } from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
 
 const GENRES = [
-  { key: 'Fiction', label: 'Fiction' },
-  { key: 'Science', label: 'Science' },
   { key: 'History', label: 'History' },
   { key: 'Biography', label: 'Biography' },
-  { key: 'Romance', label: 'Romance' },
-  { key: 'Mystery', label: 'Mystery' },
-  { key: 'Fantasy', label: 'Fantasy' },
-{ key: 'Horror', label: 'Horror' },
-{ key: 'Adventure', label: 'Adventure' },
-{ key: 'Drama', label: 'Drama' },
-{ key: 'Comedy', label: 'Comedy' },
-{ key: 'Poetry', label: 'Poetry' },
-{ key: 'Young Adult Fiction', label: 'Young Adult Fiction' },
-{ key: 'Juvenile Fiction', label: 'Juvenile Fiction' },
-{ key: 'Comics & Graphic Novels', label: 'Comics & Graphic Novels' },
-{ key: 'True Crime', label: 'True Crime' },
+  { key: 'Philosophy', label: 'Philosophy' },
+  { key: 'Religion', label: 'Religion' },
+  { key: 'Political Science', label: 'Political Science' },
+  { key: 'Social Science', label: 'Social Science' },
+  { key: 'Law', label: 'Law' },
 
-{ key: 'Mathematics', label: 'Mathematics' },
-{ key: 'Medicine', label: 'Medicine' },
-{ key: 'Technology', label: 'Technology' },
-{ key: 'Computers', label: 'Computers' },
-{ key: 'Nature', label: 'Nature' },
+  { key: 'Psychology', label: 'Psychology' },
+  { key: 'Self Help', label: 'Self Help' },
+  { key: 'Health & Fitness', label: 'Health & Fitness' },
+  { key: 'Family & Relationships', label: 'Family & Relationships' },
 
-{ key: 'Philosophy', label: 'Philosophy' },
-{ key: 'Religion', label: 'Religion' },
-{ key: 'Political Science', label: 'Political Science' },
-{ key: 'Social Science', label: 'Social Science' },
-{ key: 'Law', label: 'Law' },
+  { key: 'Art', label: 'Art' },
+  { key: 'Music', label: 'Music' },
+  { key: 'Photography', label: 'Photography' },
 
-{ key: 'Psychology', label: 'Psychology' },
-{ key: 'Self Help', label: 'Self Help' },
-{ key: 'Health & Fitness', label: 'Health & Fitness' },
-{ key: 'Family & Relationships', label: 'Family & Relationships' },
+  { key: 'Education', label: 'Education' },
+  { key: 'Language Arts', label: 'Language Arts' },
 
-{ key: 'Art', label: 'Art' },
-{ key: 'Music', label: 'Music' },
-{ key: 'Photography', label: 'Photography' },
+  { key: 'Cooking', label: 'Cooking' },
+  { key: 'Travel', label: 'Travel' },
+  { key: 'Sports & Recreation', label: 'Sports & Recreation' },
+  { key: 'Games & Activities', label: 'Games & Activities' },
+  { key: 'Crafts & Hobbies', label: 'Crafts & Hobbies' },
 
-{ key: 'Education', label: 'Education' },
-{ key: 'Language Arts', label: 'Language Arts' },
-
-{ key: 'Cooking', label: 'Cooking' },
-{ key: 'Travel', label: 'Travel' },
-{ key: 'Sports & Recreation', label: 'Sports & Recreation' },
-{ key: 'Games & Activities', label: 'Games & Activities' },
-{ key: 'Crafts & Hobbies', label: 'Crafts & Hobbies' },
-
-{ key: 'Business & Economics', label: 'Business & Economics' }
+  { key: 'Business & Economics', label: 'Business & Economics' }
 ];
 
 const Preferences: React.FC = () => {
   const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 6;
   // Las imágenes para cada género se obtienen desde la carpeta public/images.
   // No se usa localStorage: todo se carga desde archivos estáticos.
   // Ya no usamos imágenes: mostramos solo una casilla por género
@@ -162,7 +143,7 @@ const Preferences: React.FC = () => {
       <p className="text-sm text-[var(--text-muted)] mb-6">Selecciona hasta 3 géneros. Haz clic en una caja para seleccionar.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {GENRES.map(g => {
+        {GENRES.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(g => {
           const isSelected = selected.includes(g.key);
 
           return (
@@ -185,6 +166,30 @@ const Preferences: React.FC = () => {
             </label>
           );
         })}
+      </div>
+
+      {/* Controles de paginación */}
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-sm text-[var(--text-muted)]">Página {page} de {Math.ceil(GENRES.length / PAGE_SIZE)}</div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="btn-secondary px-3 py-1 rounded disabled:opacity-50"
+          >Prev</button>
+          {Array.from({ length: Math.ceil(GENRES.length / PAGE_SIZE) }, (_, i) => i + 1).map(pn => (
+            <button
+              key={pn}
+              onClick={() => setPage(pn)}
+              className={`px-2 py-1 rounded ${pn === page ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--card-bg-color)] border'}`}
+            >{pn}</button>
+          ))}
+          <button
+            onClick={() => setPage(p => Math.min(Math.ceil(GENRES.length / PAGE_SIZE), p + 1))}
+            disabled={page === Math.ceil(GENRES.length / PAGE_SIZE)}
+            className="btn-secondary px-3 py-1 rounded disabled:opacity-50"
+          >Next</button>
+        </div>
       </div>
 
       <div className="mt-6 flex items-center gap-3">
