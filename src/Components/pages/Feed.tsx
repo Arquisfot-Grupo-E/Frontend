@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../organisms/Navbar";
 import BookCard from "../atoms/BookCard";
 import type { Book } from "../../types/Book";
+import BookCardSimple from "../atoms/BookCardSimple";
+
 
 const Feed: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -10,6 +12,9 @@ const Feed: React.FC = () => {
     Record<string, Book[]>
   >({});
   const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
+  const [carouselIndices, setCarouselIndices] = useState<
+    Record<string, number>
+  >({});
 
   const handleSearch = (q: string) => setSearchQuery(q);
   const handleClear = () => setSearchQuery("");
@@ -148,6 +153,26 @@ const Feed: React.FC = () => {
     };
   }, []);
 
+  // Funciones para manejar el carrusel
+  const handlePrev = (genre: string, max: number) => {
+    setCarouselIndices((prev) => ({
+      ...prev,
+      [genre]: Math.max((prev[genre] ?? 0) - 1, 0),
+    }));
+  };
+
+  const handleNext = (genre: string, max: number) => {
+    setCarouselIndices((prev) => {
+      const current = prev[genre] ?? 0;
+      // Evita quedarse sin libros visibles
+      const next = Math.min(current + 1, Math.max(0, max - 4));
+      return {
+        ...prev,
+        [genre]: next,
+      };
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[var(--background-color)] text-[var(--text-color)]">
       <Navbar
@@ -160,7 +185,7 @@ const Feed: React.FC = () => {
       <main className="max-w-6xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-bold mb-4">Feed</h1>
         <p className="text-lg text-[var(--text-muted)] mb-6">
-          Aquí tienes 10 libros por categoría.
+          Te recomendamos estos libros según tus gustos
         </p>
 
         {isLoading && (
@@ -169,23 +194,45 @@ const Feed: React.FC = () => {
           </p>
         )}
 
-        {Object.entries(recommendations).map(([genre, books]) => (
-          <section key={genre} className="mb-10">
-            <h2 className="text-2xl font-semibold mb-4">{genre}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Array.isArray(books) &&
-                books.map((b, i) => (
-                  <BookCard key={`${b.id ?? i}-${i}`} {...b} />
-                ))}
-            </div>
-          </section>
-        ))}
+        {Object.entries(recommendations).map(([genre, books]) => {
+          const idx = carouselIndices[genre] ?? 0;
+          const visibleBooks = books.slice(idx, idx + 4); // muestra 4 libros
+          return (
+            <section key={genre} className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">{genre}</h2>
+              <div className="flex items-center">
+               <button
+                  className="px-2 py-1 rounded bg-gray-200 text-gray-700 mr-2 disabled:opacity-50 focus:outline-none"
+                   onClick={() => handlePrev(genre, books.length)}
+                  disabled={idx === 0}
+                  aria-label={`Anterior en ${genre}`}
+                >
+                  &#8592;
+                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+                  {visibleBooks.map((b, i) => (
+                    <BookCardSimple key={`${b.id ?? i}-${i}`} {...b} />
+                  ))}
+                </div>
+                <button
+                  className="px-2 py-1 rounded bg-gray-200 text-gray-700 ml-2 disabled:opacity-50 focus:outline-none"
+                  onClick={() => handleNext(genre, books.length)}
+                  disabled={idx + 4 >= books.length}
+                  aria-label={`Siguiente en ${genre}`}
+                >
+                  &#8594;
+                </button>
+              </div>
+             
+            </section>
+          );
+        })}
 
         {/* Sección de libros recomendados */}
         {recommendedBooks.length > 0 && (
           <section className="mb-10">
             <h2 className="text-2xl font-semibold mb-4">
-              Recomendados para ti
+              Otros usuarios también han leído
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {recommendedBooks.map((b, i) => (
