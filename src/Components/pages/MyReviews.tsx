@@ -22,7 +22,7 @@ const MyReviews: React.FC = () => {
       setIsLoading(true);
 
       const res = await fetch(
-        `http://localhost:8000/books/search?q=${encodeURIComponent(query)}`
+        `http://localhost:8000/books/review/search?q=${encodeURIComponent(query)}`
       );
       if (!res.ok) throw new Error("Error en la búsqueda");
       const data: Book[] = await res.json();

@@ -60,7 +60,7 @@ const Feed: React.FC = () => {
 				}
 
 				const fetches = categories.map(cat =>
-					fetch(`http://localhost:8000/books/search?q=subject:${encodeURIComponent(cat)}&maxResults=10`)
+					fetch(`http://localhost:8000/books/review/search?q=subject:${encodeURIComponent(cat)}&maxResults=10`)
 						.then(r => r.ok ? r.json().catch(() => ({ items: [] })) : ({ items: [] }))
 						.catch(() => ({ items: [] }))
 				);
