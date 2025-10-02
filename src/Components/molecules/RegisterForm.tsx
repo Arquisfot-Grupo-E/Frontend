@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Mail, Lock, User, FileText } from "lucide-react";
 import FormInput from "../atoms/FormInput";
 import FormButton from "../atoms/FormButton";
-import { useAuth, type RegisterData } from "../../services/auth";
+import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "../../contexts/ToastContext";
 
@@ -11,8 +11,16 @@ type Props = {
   onSwitchToLogin?: () => void;
 };
 
+interface RegisterFormData {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  description?: string;
+}
+
 const RegisterForm: React.FC<Props> = ({ onSuccess, onSwitchToLogin }) => {
-  const [formData, setFormData] = useState<RegisterData>({
+  const [formData, setFormData] = useState<RegisterFormData>({
     email: "",
     password: "",
     first_name: "",
@@ -20,15 +28,14 @@ const RegisterForm: React.FC<Props> = ({ onSuccess, onSwitchToLogin }) => {
     description: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<Partial<RegisterData & { confirmPassword: string }>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Partial<RegisterFormData & { confirmPassword: string }>>({});
   
-  const { register, login } = useAuth();
+  const { register, registerLoading, login } = useAuth();
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<RegisterData & { confirmPassword: string }> = {};
+    const newErrors: Partial<RegisterFormData & { confirmPassword: string }> = {};
 
     if (!formData.email) {
       newErrors.email = "El email es obligatorio";
@@ -65,50 +72,48 @@ const RegisterForm: React.FC<Props> = ({ onSuccess, onSwitchToLogin }) => {
     
     if (!validateForm()) return;
 
-    setIsLoading(true);
     try {
-      await register(formData);
+      await register(
+        formData.email,
+        formData.password,
+        formData.first_name,
+        formData.last_name,
+        formData.description
+      );
 
-      // Después de registrar, iniciar sesión automáticamente con las mismas credenciales
+      // Iniciar sesión automáticamente
       try {
-        await login({ email: formData.email, password: formData.password });
+        await login(formData.email, formData.password);
       } catch (loginErr) {
-        // Si el login automático falla, mostrar mensaje pero permitir que el usuario proceda a login manual
-        showError('Registro completo', 'Cuenta creada, pero no se pudo iniciar sesión automáticamente. Por favor inicia sesión.');
+        showError('Registro completo', 'Cuenta creada, pero no se pudo iniciar sesión automáticamente.');
         navigate('/preferences');
         onSuccess?.();
         return;
       }
 
-      // Mostrar toast de éxito
       showSuccess(
         "¡Cuenta creada y autenticada!",
-        `Bienvenido ${formData.first_name}, tu cuenta ha sido registrada y has iniciado sesión`
+        `Bienvenido ${formData.first_name}`
       );
 
-      // Redirigir a preferencias y notificar al componente padre
       navigate('/preferences');
       onSuccess?.();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Error al registrar usuario";
+    } catch (error: any) {
+      const message = error.message || "Error al registrar usuario";
       
-      // Mostrar toast de error
       showError(
         "Error en el registro",
         message
       );
       
       setErrors({ email: message });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field: keyof RegisterData) => (
+  const handleInputChange = (field: keyof RegisterFormData) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
-    // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -205,7 +210,7 @@ const RegisterForm: React.FC<Props> = ({ onSuccess, onSwitchToLogin }) => {
           label="Crear Cuenta"
           variant="primary"
           fullWidth
-          isLoading={isLoading}
+          isLoading={registerLoading}
           className="mt-6"
         />
       </form>

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import FormInput from "../atoms/FormInput";
 import FormButton from "../atoms/FormButton";
-import { useAuth, type LoginCredentials } from "../../services/auth";
+import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../contexts/ToastContext";
 import { useNavigate } from 'react-router-dom';
 
@@ -12,20 +12,24 @@ type Props = {
   onSwitchToPasswordRecovery?: () => void;
 };
 
-const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister,onSwitchToPasswordRecovery  }) => {
-  const [formData, setFormData] = useState<LoginCredentials>({
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister, onSwitchToPasswordRecovery }) => {
+  const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
-  const [errors, setErrors] = useState<Partial<LoginCredentials>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Partial<LoginFormData>>({});
   
-  const { login } = useAuth();
+  const { login, loginLoading } = useAuth();
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<LoginCredentials> = {};
+    const newErrors: Partial<LoginFormData> = {};
 
     if (!formData.email) {
       newErrors.email = "El email es obligatorio";
@@ -46,66 +50,38 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister,onSwitchToPa
     
     if (!validateForm()) return;
 
-    setIsLoading(true);
     try {
-      const resp = await login(formData);
-
-      // Mostrar toast de éxito
+      // La función login ahora devuelve los datos del usuario
+      const userData = await login(formData.email, formData.password);
+      
       showSuccess(
         "¡Bienvenido de vuelta!",
         "Has iniciado sesión correctamente"
       );
 
-      // Determinar si el usuario ya seleccionó preferencias.
-      // Priorizar la respuesta del login si contiene `user`.
-      let hasSelected: boolean | undefined = undefined;
-      if (resp && (resp as any).user) {
-        hasSelected = (resp as any).user.has_selected_preferences ?? (resp as any).user.hasSelectedPreferences;
-      }
-
-      // Si no vino en la respuesta, intentar leer localStorage
-      if (hasSelected === undefined) {
-        try {
-          const raw = localStorage.getItem('user_data');
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            // soportar wrapper { user: {...} } o directamente el user object
-            const userObj = parsed.user ?? parsed;
-            hasSelected = userObj?.has_selected_preferences ?? userObj?.hasSelectedPreferences;
-          }
-        } catch (err) {
-          // ignore parse errors
-        }
-      }
-
-      // Redirigir según la bandera; si undefined llevar a feed por defecto
-      if (hasSelected === false) {
-        navigate('/preferences');
-      } else {
+      // Redirigir basado en si el usuario ha completado la selección de preferencias
+      if (userData.has_selected_preferences) {
         navigate('/feed');
+      } else {
+        navigate('/preferences');
       }
-
       onSuccess?.();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Error al iniciar sesión";
+    } catch (error: any) {
+      const message = error.message || "Error al iniciar sesión";
       
-      // Mostrar toast de error
       showError(
         "Error al iniciar sesión",
         message
       );
       
       setErrors({ email: message });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field: keyof LoginCredentials) => (
+  const handleInputChange = (field: keyof LoginFormData) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
-    // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -146,22 +122,21 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister,onSwitchToPa
         />
 
         <div className="mt-4 text-center">
-         <button
-           type="button"
-           onClick={onSwitchToPasswordRecovery}
-           className="text-[var(--accent-color)] hover:text-[var(--accent-hover)] font-medium transition-colors duration-200 text-sm"
-         >
-           ¿Olvidaste tu contraseña?
-         </button>
-       </div>
-
+          <button
+            type="button"
+            onClick={onSwitchToPasswordRecovery}
+            className="text-[var(--accent-color)] hover:text-[var(--accent-hover)] font-medium transition-colors duration-200 text-sm"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
 
         <FormButton
           type="submit"
           label="Iniciar Sesión"
           variant="primary"
           fullWidth
-          isLoading={isLoading}
+          isLoading={loginLoading}
           className="mt-6"
         />
       </form>
