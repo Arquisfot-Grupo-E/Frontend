@@ -1,5 +1,21 @@
 # React + TypeScript + Vite
 
+
+## 🛠️ Instalación
+
+### 1. Clona el repositorio
+```bash
+git clone <url-del-repositorio>
+cd FRONTEND
+```
+
+### 2. Docker
+docker-compose up --build
+
+Corre en el puerto 5173
+
+
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
