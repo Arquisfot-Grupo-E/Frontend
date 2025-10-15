@@ -1,18 +1,23 @@
+// src/Components/organisms/ReviewForm.tsx
 import React, { useState } from "react";
+import { Star } from "lucide-react";
 import type { Book } from "../../types/Book";
 
 type Props = {
   selectedBook: Book | null;
-  onSaveReview: (review: string) => void;
+  onSaveReview: (review: string, rating: number) => void;
 };
 
 const ReviewForm: React.FC<Props> = ({ selectedBook, onSaveReview }) => {
   const [reviewText, setReviewText] = useState("");
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
 
   const handleSave = () => {
-    if (reviewText.trim()) {
-      onSaveReview(reviewText);
+    if (reviewText.trim() && rating > 0) {
+      onSaveReview(reviewText, rating);
       setReviewText("");
+      setRating(0);
     }
   };
 
@@ -37,6 +42,38 @@ const ReviewForm: React.FC<Props> = ({ selectedBook, onSaveReview }) => {
           Selecciona un libro para escribir una reseña.
         </p>
       )}
+
+      {/* Rating con estrellas */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-[var(--text-color)] mb-2">
+          Calificación (obligatorio)
+        </label>
+        <div className="flex gap-2 items-center">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setRating(star)}
+              onMouseEnter={() => setHoveredRating(star)}
+              onMouseLeave={() => setHoveredRating(0)}
+              className="transition-transform hover:scale-110"
+            >
+              <Star
+                size={32}
+                className={`${
+                  star <= (hoveredRating || rating)
+                    ? 'fill-yellow-400 text-yellow-400'
+                    : 'text-gray-300'
+                } transition-colors`}
+              />
+            </button>
+          ))}
+          <span className="ml-2 text-sm text-[var(--text-muted)]">
+            {rating > 0 ? `${rating} de 5 estrellas` : 'Selecciona tu calificación'}
+          </span>
+        </div>
+      </div>
+
       <textarea
         value={reviewText}
         onChange={(e) => setReviewText(e.target.value)}
@@ -47,7 +84,7 @@ const ReviewForm: React.FC<Props> = ({ selectedBook, onSaveReview }) => {
       <button
         onClick={handleSave}
         className="mt-4 px-6 py-3 bg-[var(--primary-color)] text-[var(--text-on-primary)] rounded-lg hover:bg-[var(--accent-color)] disabled:bg-[var(--text-muted)] disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg"
-        disabled={!selectedBook || !reviewText.trim()}
+        disabled={!selectedBook || !reviewText.trim() || rating === 0}
       >
         Guardar Reseña
       </button>

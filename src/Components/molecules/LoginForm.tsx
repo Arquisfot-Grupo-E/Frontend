@@ -1,10 +1,12 @@
+// src/Components/molecules/LoginForm.tsx
 import React, { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import FormInput from "../atoms/FormInput";
 import FormButton from "../atoms/FormButton";
-import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../contexts/ToastContext";
 import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { authService } from '../../services/auth';
 
 type Props = {
   onSuccess?: () => void;
@@ -23,8 +25,9 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister, onSwitchToP
     password: "",
   });
   const [errors, setErrors] = useState<Partial<LoginFormData>>({});
+  const [isLoading, setIsLoading] = useState(false);
   
-  const { login, loginLoading } = useAuth();
+  const { login, refreshUser } = useAuthContext();
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
@@ -50,21 +53,27 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister, onSwitchToP
     
     if (!validateForm()) return;
 
+    setIsLoading(true);
     try {
-      // La función login ahora devuelve los datos del usuario
-      const userData = await login(formData.email, formData.password);
+      // Usar el login del contexto
+      await login(formData.email, formData.password);
+      
+      // Refrescar datos del usuario para asegurar que estén actualizados
+      await refreshUser();
       
       showSuccess(
         "¡Bienvenido de vuelta!",
         "Has iniciado sesión correctamente"
       );
 
-      // Redirigir basado en si el usuario ha completado la selección de preferencias
-      if (userData.has_selected_preferences) {
+      // Redirigir basado en preferencias
+      const user = authService.getCachedUser();
+      if (user?.has_selected_preferences) {
         navigate('/feed');
       } else {
         navigate('/preferences');
       }
+      
       onSuccess?.();
     } catch (error: any) {
       const message = error.message || "Error al iniciar sesión";
@@ -75,6 +84,8 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister, onSwitchToP
       );
       
       setErrors({ email: message });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -136,7 +147,7 @@ const LoginForm: React.FC<Props> = ({ onSuccess, onSwitchToRegister, onSwitchToP
           label="Iniciar Sesión"
           variant="primary"
           fullWidth
-          isLoading={loginLoading}
+          isLoading={isLoading}
           className="mt-6"
         />
       </form>
