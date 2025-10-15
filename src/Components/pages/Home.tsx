@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Navbar from "../organisms/Navbar";
 import BookSearch from "../organisms/BookSearch";
 import HeroSection from "../organisms/HeroSection";
@@ -14,7 +14,7 @@ import { SEARCH_BOOK } from '../../graphql/mutations';
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(""); // controla el texto del input
   const { getAccessToken } = useAuth();
 
@@ -65,7 +65,9 @@ export default function Home() {
   const [searchBooks, { loading: searchLoading }] = useLazyQuery(SEARCH_BOOKS);
   const [registerSearch] = useMutation(SEARCH_BOOK);
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
+    if (!query.trim()) return;
+    
     try {
       setHasSearched(true);
       setIsLoading(true);
@@ -93,17 +95,15 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching books", error);
       setBooks([]);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [searchBooksQuery]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setBooks([]);
     setHasSearched(false);
-    setIsLoading(false);
+    setError(null);
     setSearchQuery(""); // limpia el texto del buscador
-  };
+  }, []);
 
   const handleCategoryClick = (category: string) => {
     // Realizar búsqueda por categoría
