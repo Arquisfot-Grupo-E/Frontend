@@ -150,3 +150,37 @@ export const GET_MY_RATINGS = gql`
     }
   }
 `;
+
+// ============================================
+// QUERIES DE PRECIOS (WEB SCRAPING)
+// ============================================
+
+export const GET_BOOK_PRICES = gql`
+  query GetBookPrices($bookTitle: String!) {
+    getBookPrices(bookTitle: $bookTitle) {
+      book_title
+      prices {
+        source
+        price
+      }
+      status
+      message
+    }
+  }
+`;
+
+export const GET_ALL_SCRAPED_BOOKS = gql`
+  query GetAllScrapedBooks {
+    getAllScrapedBooks {
+      books {
+        id
+        title
+        price
+        source
+        scraped_at
+      }
+      count
+      timestamp
+    }
+  }
+`;
