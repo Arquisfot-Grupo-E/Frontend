@@ -44,23 +44,32 @@ class AuthService {
   }
 
   private loadTokensFromStorage() {
-    this.accessToken = localStorage.getItem('access_token');
-    this.refreshToken = localStorage.getItem('refresh_token');
+    // Only access localStorage on the client side
+    if (typeof window !== 'undefined' && window.localStorage) {
+      this.accessToken = localStorage.getItem('access_token');
+      this.refreshToken = localStorage.getItem('refresh_token');
+    }
   }
 
   private saveTokensToStorage(tokens: AuthTokens) {
     this.accessToken = tokens.access;
     this.refreshToken = tokens.refresh;
-    localStorage.setItem('access_token', tokens.access);
-    localStorage.setItem('refresh_token', tokens.refresh);
+    // Only save to localStorage on the client side
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('access_token', tokens.access);
+      localStorage.setItem('refresh_token', tokens.refresh);
+    }
   }
 
   private clearTokensFromStorage() {
     this.accessToken = null;
     this.refreshToken = null;
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_data');
+    // Only clear localStorage on the client side
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_data');
+    }
   }
 
   // Registro de usuario
@@ -112,7 +121,9 @@ class AuthService {
       const possibleUser = (authResponse as any).user ?? (authResponse as any).data ?? null;
       if (possibleUser) {
         // Guardar también en localStorage la estructura completa para consistencia
-        localStorage.setItem('user_data', JSON.stringify(possibleUser));
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('user_data', JSON.stringify(possibleUser));
+        }
         return { ...authResponse, user: possibleUser };
       }
     } catch (err) {
@@ -207,7 +218,9 @@ class AuthService {
 
     const { access } = await response.json();
     this.accessToken = access;
-    localStorage.setItem('access_token', access);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('access_token', access);
+    }
 
     return access;
   }
@@ -261,7 +274,9 @@ class AuthService {
 
     const data = await response.json();
     // Guardar la respuesta cruda para depuración/UI (puede venir { user: {...}, ... })
-    localStorage.setItem('user_data', JSON.stringify(data));
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('user_data', JSON.stringify(data));
+    }
 
     // Normalizar: si el backend devuelve { user: {...} } devolver el inner user
     const normalized = (data && (data as any).user) ? (data as any).user : data;
@@ -270,8 +285,11 @@ class AuthService {
 
   // Obtener datos del usuario desde localStorage
   getCachedUser(): User | null {
-    const userData = localStorage.getItem('user_data');
-    return userData ? JSON.parse(userData) : null;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const userData = localStorage.getItem('user_data');
+      return userData ? JSON.parse(userData) : null;
+    }
+    return null;
   }
 }
 
