@@ -12,8 +12,10 @@ export const useAuth = () => {
       });
       
       if (data?.login) {
-        localStorage.setItem('access_token', data.login.access);
-        localStorage.setItem('refresh_token', data.login.refresh);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('access_token', data.login.access);
+          localStorage.setItem('refresh_token', data.login.refresh);
+        }
         return data.login;
       }
     } catch (error) {
@@ -41,12 +43,15 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_data');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_data');
+    }
   };
 
   const isAuthenticated = () => {
+    if (typeof window === 'undefined') return false; // Protección SSR
     return !!localStorage.getItem('access_token');
   };
 

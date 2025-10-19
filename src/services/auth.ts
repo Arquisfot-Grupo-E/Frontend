@@ -43,11 +43,14 @@ class AuthService {
   private refreshToken: string | null = null;
 
   constructor() {
-    // Cargar tokens desde localStorage al inicializar
-    this.loadTokensFromStorage();
+    // Cargar tokens desde localStorage al inicializar (solo en navegador)
+    if (typeof window !== 'undefined') {
+      this.loadTokensFromStorage();
+    }
   }
 
   private loadTokensFromStorage() {
+    if (typeof window === 'undefined') return; // Protección SSR
     this.accessToken = localStorage.getItem('access_token');
     this.refreshToken = localStorage.getItem('refresh_token');
   }
@@ -55,16 +58,21 @@ class AuthService {
   private saveTokensToStorage(tokens: AuthTokens) {
     this.accessToken = tokens.access;
     this.refreshToken = tokens.refresh;
-    localStorage.setItem('access_token', tokens.access);
-    localStorage.setItem('refresh_token', tokens.refresh);
+    //
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', tokens.access);
+      localStorage.setItem('refresh_token', tokens.refresh);
+    }
   }
 
   private clearTokensFromStorage() {
     this.accessToken = null;
     this.refreshToken = null;
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_data');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_data');
+    }
   }
 
   // Registro de usuario
@@ -255,7 +263,9 @@ class AuthService {
 
     const { access } = await response.json();
     this.accessToken = access;
-    localStorage.setItem('access_token', access);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', access);
+    }
 
     return access;
   }
@@ -327,12 +337,15 @@ class AuthService {
     }
 
     const userData = data.me.user;
-    localStorage.setItem('user_data', JSON.stringify(userData));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user_data', JSON.stringify(userData));
+    }
     return userData;
   }
 
   // Obtener datos del usuario desde localStorage
   getCachedUser(): User | null {
+    if (typeof window === 'undefined') return null; // Protección SSR
     const userData = localStorage.getItem('user_data');
     return userData ? JSON.parse(userData) : null;
   }
