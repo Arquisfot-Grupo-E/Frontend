@@ -36,6 +36,31 @@ export interface AuthTokens {
   refresh: string;
 }
 
+// GraphQL response types
+interface LoginMutationResponse {
+  login: {
+    access: string;
+    refresh: string;
+  };
+}
+
+interface RegisterMutationResponse {
+  register: {
+    id: number;
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+}
+
+interface GetMeQueryResponse {
+  me: {
+    user: User;
+    avatar?: string;
+    bio?: string;
+  };
+}
+
 const API_BASE_URL = 'http://localhost:8001'; // Puerto del backend Django
 
 class AuthService {
@@ -94,7 +119,7 @@ class AuthService {
   //   return response.json();
   // }
   async register(userData: RegisterData): Promise<User> {
-    const { data } = await apolloClient.mutate({
+    const { data } = await apolloClient.mutate<RegisterMutationResponse>({
       mutation: REGISTER,
       variables: {
         email: userData.email,
@@ -109,7 +134,7 @@ class AuthService {
       throw new Error('Error en el registro');
     }
 
-    return data.register;
+    return data.register as User;
   }
 
   // Login de usuario
@@ -159,8 +184,8 @@ class AuthService {
   //     return authResponse;
   //   }
   // }
-    async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const { data } = await apolloClient.mutate({
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    const { data } = await apolloClient.mutate<LoginMutationResponse>({
       mutation: LOGIN,
       variables: {
         email: credentials.email,
@@ -172,21 +197,23 @@ class AuthService {
       throw new Error('Credenciales incorrectas');
     }
 
+    const loginResponse = data.login;
+
     // Guardar tokens
     this.saveTokensToStorage({
-      access: data.login.access,
-      refresh: data.login.refresh
+      access: loginResponse.access,
+      refresh: loginResponse.refresh
     });
 
     // Si la respuesta ya incluye información del usuario (o un wrapper), normalizar y devolverla
     try {
-      const possibleUser = (authResponse as any).user ?? (authResponse as any).data ?? null;
+      const possibleUser = (loginResponse as any).user ?? (loginResponse as any).data ?? null;
       if (possibleUser) {
         // Guardar también en localStorage la estructura completa para consistencia
         if (typeof window !== 'undefined' && window.localStorage) {
           localStorage.setItem('user_data', JSON.stringify(possibleUser));
         }
-        return { ...authResponse, user: possibleUser };
+        return { ...loginResponse, user: possibleUser };
       }
     } catch (err) {
       // ignore
@@ -195,9 +222,9 @@ class AuthService {
     // Si no vino user en la respuesta, intentar obtenerlo desde el endpoint de perfil
     try {
       const user = await this.getCurrentUser();
-      return { ...data.login, user };
+      return { ...loginResponse, user };
     } catch (err) {
-      return data.login;
+      return loginResponse;
     }
   }
   // Reset password - enviar email de recuperación
@@ -342,23 +369,22 @@ class AuthService {
   // }
 
   async getCurrentUser(): Promise<User> {
-    const { data } = await apolloClient.query({
+    const { data: userData } = await apolloClient.query<GetMeQueryResponse>({
       query: GET_ME,
       fetchPolicy: 'network-only'
     });
 
-    if (!data?.me) {
+    if (!userData?.me) {
       throw new Error('Error obteniendo perfil de usuario');
     }
 
-    const data = await response.json();
     // Guardar la respuesta cruda para depuración/UI (puede venir { user: {...}, ... })
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('user_data', JSON.stringify(data));
+      localStorage.setItem('user_data', JSON.stringify(userData.me));
     }
 
     // Normalizar: si el backend devuelve { user: {...} } devolver el inner user
-    const normalized = (data && (data as any).user) ? (data as any).user : data;
+    const normalized = userData.me.user ? userData.me.user : userData.me;
     return normalized as User;
   }
 
