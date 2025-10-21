@@ -35,6 +35,13 @@ if (!isProduction) {
 app.use(async (req, res, next) => {
   try {
     const url = req.originalUrl.replace(base, '')
+    // If the request is for a well-known resource (e.g. devtools/extension requests)
+    // or the client does not accept HTML, skip SSR and let static middlewares/next handlers
+    // handle it. This prevents React Router from logging "No routes matched location ..."
+    const accept = req.headers.accept || ''
+    if (url.startsWith('/.well-known') || !accept.includes('text/html')) {
+      return next()
+    }
 
     let template
     let render

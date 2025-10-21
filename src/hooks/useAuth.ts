@@ -12,10 +12,10 @@ export const useAuth = () => {
       });
       
       if (data?.login) {
-        if (typeof window !== 'undefined') {
+        //if (typeof window !== 'undefined') {
           localStorage.setItem('access_token', data.login.access);
           localStorage.setItem('refresh_token', data.login.refresh);
-        }
+        //}
         return data.login;
       }
     } catch (error) {

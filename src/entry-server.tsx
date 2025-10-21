@@ -5,6 +5,7 @@ import { ApolloProvider } from '@apollo/client/react';
 import { apolloClient } from './lib/apolloClient';
 import { AuthProvider } from './contexts/AuthContext';
 import App from "./App";
+import "./index.css";
 
 
 /**
