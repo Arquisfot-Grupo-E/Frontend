@@ -6,6 +6,7 @@ import ReviewForm from "../organisms/ReviewForm";
 import ReviewList from "../organisms/ReviewList";
 import { useMyReviews } from "../../hooks/useMyReviews";
 import type { Book } from "../../types/Book";
+import Navbar from '../organisms/Navbar';
 
 const MyReviews: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
@@ -22,7 +23,7 @@ const MyReviews: React.FC = () => {
       setIsLoading(true);
 
       const res = await fetch(
-        `http://localhost:8000/books/search?q=${encodeURIComponent(query)}`
+        `http://localhost:8000/books/review/search?q=${encodeURIComponent(query)}`
       );
       if (!res.ok) throw new Error("Error en la búsqueda");
       const data: Book[] = await res.json();
@@ -47,7 +48,28 @@ const MyReviews: React.FC = () => {
     setSelectedBook(book);
   };
 
-  const handleSaveReview = async (review: string) => {
+  // const handleSaveReview = async (review: string) => {
+  //   if (!selectedBook) {
+  //     alert("No se seleccionó un libro.");
+  //     return;
+  //   }
+  //   if (!selectedBook.id) {
+  //     alert("El libro no tiene un ID válido.");
+  //     return;
+  //   }
+
+  //   try {
+  //     await saveReview(selectedBook.id, review);
+  //     alert("Reseña guardada exitosamente!");
+  //     setSelectedBook(null);
+  //   } catch (error) {
+  //     console.error("Error saving review:", error);
+  //     const message = error instanceof Error ? error.message : "Error al guardar la reseña.";
+  //     alert(message);
+  //   }
+  // };
+
+    const handleSaveReview = async (review: string, rating: number) => {
     if (!selectedBook) {
       alert("No se seleccionó un libro.");
       return;
@@ -58,7 +80,7 @@ const MyReviews: React.FC = () => {
     }
 
     try {
-      await saveReview(selectedBook.id, review);
+      await saveReview(selectedBook.id, review, rating);
       alert("Reseña guardada exitosamente!");
       setSelectedBook(null);
     } catch (error) {
@@ -100,7 +122,15 @@ const MyReviews: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[var(--background-color)]">
+      <Navbar
+            onSearch={() => {}}
+            onClear={() => {}}
+            searchQuery={""}
+            setSearchQuery={() => {}}
+            placeholder="Buscar libros..."
+        />
       <div className="max-w-5xl mx-auto px-6 py-8">
+        
         {/* Header */}
         <div className="bg-[var(--card-bg-color)] rounded-lg p-6 mb-8 border border-[var(--card-border-color)]">
           <h1 className="text-3xl font-bold mb-2 text-[var(--text-color)]">Mis Reseñas</h1>

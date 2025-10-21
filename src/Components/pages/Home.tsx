@@ -1,42 +1,54 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Navbar from "../organisms/Navbar";
 import BookSearch from "../organisms/BookSearch";
 import HeroSection from "../organisms/HeroSection";
 import BookCategories from "../organisms/BookCategories";
 import RandomBooksCarousel from "../organisms/RandomBooksCarousel";
 import type { Book } from "../../types/Book";
+import { useLazyQuery } from '@apollo/client/react';
+import { SEARCH_BOOKS } from '../../graphql/queries';
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // controla el texto del input
+  
+  // GraphQL query para búsqueda de libros
+  const [searchBooks, { loading: isLoading }] = useLazyQuery(SEARCH_BOOKS);
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
+    if (!query.trim()) return;
+    
     try {
       setHasSearched(true);
-      setIsLoading(true);
+      
+      console.log("🔍 Buscando libros con GraphQL:", query);
+      
+      const { data, error: gqlError } = await searchBooks({
+        variables: { query: query.trim() }
+      });
 
-      const res = await fetch(
-        `http://localhost:8000/books/search?q=${encodeURIComponent(query)}`
-      );
-      if (!res.ok) throw new Error("Error en la búsqueda");
-      const data: Book[] = await res.json();
-      setBooks(data);
-    } catch (error) {
-      console.error("Error fetching books", error);
+      if (gqlError) {
+        console.error('GraphQL Error:', gqlError);
+        setBooks([]);
+        return;
+      }
+
+      const searchResults = (data as { searchBooks?: Book[] })?.searchBooks || [];
+      console.log("📚 Libros encontrados:", searchResults.length);
+      setBooks(searchResults);
+
+    } catch (err) {
+      console.error('Search error:', err);
       setBooks([]);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [searchBooks]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setBooks([]);
     setHasSearched(false);
-    setIsLoading(false);
     setSearchQuery(""); // limpia el texto del buscador
-  };
+  }, []);
 
   const handleCategoryClick = (category: string) => {
     // Realizar búsqueda por categoría

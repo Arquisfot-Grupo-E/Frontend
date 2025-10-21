@@ -4,29 +4,42 @@ import { useAuth } from '../../services/auth';
 import { useToast } from '../../contexts/ToastContext';
 
 const GENRES = [
-  { key: 'Fiction', label: 'Fiction' },
-  { key: 'Science', label: 'Science' },
   { key: 'History', label: 'History' },
   { key: 'Biography', label: 'Biography' },
-  { key: 'Romance', label: 'Romance' },
-  { key: 'Mystery', label: 'Mystery' },
-];
+  { key: 'Philosophy', label: 'Philosophy' },
+  { key: 'Religion', label: 'Religion' },
+  { key: 'Political Science', label: 'Political Science' },
+  { key: 'Social Science', label: 'Social Science' },
+  { key: 'Law', label: 'Law' },
 
-type ImagesMap = Record<string, string | undefined>;
+  { key: 'Psychology', label: 'Psychology' },
+  { key: 'Self Help', label: 'Self Help' },
+  { key: 'Health & Fitness', label: 'Health & Fitness' },
+  { key: 'Family & Relationships', label: 'Family & Relationships' },
+
+  { key: 'Art', label: 'Art' },
+  { key: 'Music', label: 'Music' },
+  { key: 'Photography', label: 'Photography' },
+
+  { key: 'Education', label: 'Education' },
+  { key: 'Language Arts', label: 'Language Arts' },
+
+  { key: 'Cooking', label: 'Cooking' },
+  { key: 'Travel', label: 'Travel' },
+  { key: 'Sports & Recreation', label: 'Sports & Recreation' },
+  { key: 'Games & Activities', label: 'Games & Activities' },
+  { key: 'Crafts & Hobbies', label: 'Crafts & Hobbies' },
+
+  { key: 'Business & Economics', label: 'Business & Economics' }
+];
 
 const Preferences: React.FC = () => {
   const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 6;
   // Las imágenes para cada género se obtienen desde la carpeta public/images.
   // No se usa localStorage: todo se carga desde archivos estáticos.
-  const IMAGES: ImagesMap = {
-    Fiction: '/images/fiction.jpg',
-    Science: '/images/science.jpg',
-    History: '/images/history.jpg',
-    Biography: '/images/biography.png',
-    Romance: '/images/romance.png', // ya existe en public/images
-    Mystery: '/images/mistery.jpg',
-  };
-  const images = IMAGES;
+  // Ya no usamos imágenes: mostramos solo una casilla por género
 
   const toggle = (key: string) => {
     setSelected(prev => {
@@ -80,7 +93,7 @@ const Preferences: React.FC = () => {
         setIsSubmitting(false);
         return;
       }
-
+      
       // Enviar los géneros al endpoint de users para persistir preferred_genres
       const userUpdateRes = await authenticatedFetch('http://localhost:8001/api/accounts/profile/genres/', {
         method: 'POST',
@@ -129,54 +142,54 @@ const Preferences: React.FC = () => {
       <h1 className="text-2xl font-semibold mb-4">Tus preferencias de lectura</h1>
       <p className="text-sm text-[var(--text-muted)] mb-6">Selecciona hasta 3 géneros. Haz clic en una caja para seleccionar.</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {GENRES.map(g => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {GENRES.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(g => {
           const isSelected = selected.includes(g.key);
-          const image = images[g.key];
-
-          const baseStyle: React.CSSProperties = {
-            background: 'linear-gradient(135deg, rgba(59,77,204,0.06) 0%, rgba(59,77,204,0.03) 100%)',
-            border: '1px solid rgba(59,77,204,0.12)',
-            color: 'var(--primary-color)'
-          };
-
-          const selectedStyle: React.CSSProperties = image
-            ? {
-                backgroundImage: `linear-gradient(rgba(2,9,33,0.45), rgba(2,9,33,0.25)), url('${image}')`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                color: 'var(--text-on-primary)',
-                border: '1px solid rgba(0,0,0,0.12)'
-              }
-            : {
-                background: 'linear-gradient(135deg, rgba(59,77,204,0.12), rgba(5,18,77,0.06))',
-                border: '1px solid rgba(59,77,204,0.12)',
-                color: 'var(--text-on-primary)'
-              };
 
           return (
-            <div key={g.key} className="relative">
-              <button
-                onClick={() => toggle(g.key)}
-                className={`card p-4 rounded-lg text-left flex items-start gap-3 transition-transform transform hover:-translate-y-1 focus:outline-none w-full`}
-                style={{ ...(baseStyle), ...(isSelected ? selectedStyle : {}) }}
-              >
-                <div className="flex-shrink-0 w-12 h-12 rounded-md flex items-center justify-center bg-white/60">
-                  <span style={{ fontSize: 18, fontWeight: 700, color: 'inherit' }}>{g.label.charAt(0)}</span>
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-lg" style={{ color: 'inherit' }}>{g.label}</div>
-                  <div className="text-sm text-[var(--text-muted)] mt-1" style={{ visibility: isSelected ? 'hidden' : 'visible' }}>{getGenreDescription(g.key)}</div>
-                  <div className="text-xs text-[var(--text-muted)] mt-2">{isSelected ? 'Seleccionado' : 'Toca para seleccionar'}</div>
-                </div>
-                <div className="ml-3 flex flex-col items-end gap-2">
-                  {/* espacio para futuras acciones, ahora vacío */}
-                </div>
-              </button>
-              {/* No hay UI de edición: la imagen se muestra solo si existe en `images` y la tarjeta está seleccionada */}
-            </div>
+            <label
+              key={g.key}
+              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors w-full ${isSelected ? 'bg-[var(--card-selected-bg)] border-[var(--card-selected-border)]' : 'bg-[var(--card-bg-color)] border-[var(--card-border-color)]'}`}
+              onClick={() => toggle(g.key)}
+            >
+              <input
+                type="checkbox"
+                checked={isSelected}
+                readOnly
+                className="w-5 h-5 text-primary-600 rounded"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-lg">{g.label}</div>
+                <div className="text-sm text-[var(--text-muted)] mt-1">{getGenreDescription(g.key)}</div>
+              </div>
+              <div className="text-sm text-[var(--text-muted)]">{isSelected ? 'Seleccionado' : 'Tocar para seleccionar'}</div>
+            </label>
           );
         })}
+      </div>
+
+      {/* Controles de paginación */}
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-sm text-[var(--text-muted)]">Página {page} de {Math.ceil(GENRES.length / PAGE_SIZE)}</div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="btn-secondary px-3 py-1 rounded disabled:opacity-50"
+          >Prev</button>
+          {Array.from({ length: Math.ceil(GENRES.length / PAGE_SIZE) }, (_, i) => i + 1).map(pn => (
+            <button
+              key={pn}
+              onClick={() => setPage(pn)}
+              className={`px-2 py-1 rounded ${pn === page ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--card-bg-color)] border'}`}
+            >{pn}</button>
+          ))}
+          <button
+            onClick={() => setPage(p => Math.min(Math.ceil(GENRES.length / PAGE_SIZE), p + 1))}
+            disabled={page === Math.ceil(GENRES.length / PAGE_SIZE)}
+            className="btn-secondary px-3 py-1 rounded disabled:opacity-50"
+          >Next</button>
+        </div>
       </div>
 
       <div className="mt-6 flex items-center gap-3">
@@ -210,6 +223,48 @@ function getGenreDescription(key: string) {
     case 'Biography': return 'Vida de personas influyentes y relatos personales.';
     case 'Romance': return 'Historias de amor, relaciones y emociones intensas.';
     case 'Mystery': return 'Suspenso, investigación y giros inesperados.';
+    case 'Fantasy': return 'Mundos mágicos, criaturas míticas y aventuras épicas.';
+    case 'Horror': return 'Relatos que inspiran miedo, suspenso y lo sobrenatural.';
+    case 'Adventure': return 'Exploraciones, desafíos y viajes emocionantes.';
+    case 'Drama': return 'Historias realistas con conflictos humanos intensos.';
+    case 'Comedy': return 'Narraciones ligeras, humor y situaciones divertidas.';
+    case 'Poetry': return 'Expresión artística a través de versos y emociones.';
+    case 'Young Adult Fiction': return 'Relatos juveniles con temas de crecimiento y descubrimiento.';
+    case 'Juvenile Fiction': return 'Cuentos y novelas dirigidas a niños y preadolescentes.';
+    case 'Comics & Graphic Novels': return 'Historias narradas con ilustraciones y viñetas.';
+    case 'True Crime': return 'Casos criminales reales investigados y narrados.';
+    
+    case 'Mathematics': return 'Teoría, problemas y aplicaciones numéricas.';
+    case 'Medicine': return 'Avances médicos, salud y cuidados clínicos.';
+    case 'Technology': return 'Innovaciones, herramientas y aplicaciones modernas.';
+    case 'Computers': return 'Ciencia de la computación, programación y sistemas.';
+    case 'Nature': return 'Estudios del medio ambiente, flora y fauna.';
+    
+    case 'Philosophy': return 'Reflexiones sobre la existencia, el pensamiento y la ética.';
+    case 'Religion': return 'Creencias, prácticas espirituales y tradiciones.';
+    case 'Political Science': return 'Gobierno, políticas públicas y relaciones internacionales.';
+    case 'Social Science': return 'Estudio de la sociedad, cultura y comportamiento humano.';
+    case 'Law': return 'Normas jurídicas, derechos y sistemas legales.';
+    
+    case 'Psychology': return 'Mente, emociones y conducta humana.';
+    case 'Self Help': return 'Consejos para el crecimiento y desarrollo personal.';
+    case 'Health & Fitness': return 'Bienestar físico, nutrición y ejercicio.';
+    case 'Family & Relationships': return 'Vínculos familiares, amistad y dinámicas sociales.';
+    
+    case 'Art': return 'Expresiones creativas, pintura, escultura y diseño.';
+    case 'Music': return 'Géneros, historia y apreciación musical.';
+    case 'Photography': return 'Captura de imágenes, técnica y arte visual.';
+    
+    case 'Education': return 'Métodos de enseñanza, aprendizaje y pedagogía.';
+    case 'Language Arts': return 'Literatura, escritura, gramática y expresión verbal.';
+    
+    case 'Cooking': return 'Recetas, técnicas culinarias y gastronomía.';
+    case 'Travel': return 'Destinos, culturas y experiencias alrededor del mundo.';
+    case 'Sports & Recreation': return 'Deportes, actividades físicas y entretenimiento.';
+    case 'Games & Activities': return 'Diversión, juegos de mesa y dinámicas recreativas.';
+    case 'Crafts & Hobbies': return 'Manualidades, pasatiempos y creatividad práctica.';
+    
+    case 'Business & Economics': return 'Comercio, finanzas y análisis de mercados.';
     default: return '';
   }
 }

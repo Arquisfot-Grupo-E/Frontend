@@ -1,3 +1,7 @@
+import { LOGIN, REGISTER } from "../graphql/mutations";
+import { GET_ME } from "../graphql/queries";
+import { apolloClient } from "../lib/apolloClient";
+
 // Tipos para autenticación
 export interface User {
   id: number;
@@ -73,47 +77,105 @@ class AuthService {
   }
 
   // Registro de usuario
+  // async register(userData: RegisterData): Promise<User> {
+  //   const response = await fetch(`${API_BASE_URL}/api/accounts/register/`, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify(userData),
+  //   });
+
+  //   if (!response.ok) {
+  //     const errorData = await response.json().catch(() => ({ detail: 'Error en el registro' }));
+  //     throw new Error(errorData.detail || errorData.email?.[0] || 'Error en el registro');
+  //   }
+
+  //   return response.json();
+  // }
   async register(userData: RegisterData): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/api/accounts/register/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
+    const { data } = await apolloClient.mutate({
+      mutation: REGISTER,
+      variables: {
+        email: userData.email,
+        password: userData.password,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
+        description: userData.description || ''
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: 'Error en el registro' }));
-      throw new Error(errorData.detail || errorData.email?.[0] || 'Error en el registro');
+    if (!data?.register) {
+      throw new Error('Error en el registro');
     }
 
-    return response.json();
+    return data.register;
   }
 
   // Login de usuario
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/accounts/login/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+  // async login(credentials: LoginCredentials): Promise<AuthResponse> {
+  //   const response = await fetch(`${API_BASE_URL}/api/accounts/login/`, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify({
+  //       email: credentials.email,
+  //       password: credentials.password,
+  //     }),
+  //   });
+
+  //   if (!response.ok) {
+  //     const errorData = await response.json().catch(() => ({ detail: 'Error en el login' }));
+  //     throw new Error(errorData.detail || 'Credenciales incorrectas');
+  //   }
+
+  //   const authResponse: AuthResponse = await response.json();
+
+  //   // Guardar tokens
+  //   this.saveTokensToStorage({
+  //     access: authResponse.access,
+  //     refresh: authResponse.refresh,
+  //   });
+
+  //   // Si la respuesta ya incluye información del usuario (o un wrapper), normalizar y devolverla
+  //   try {
+  //     const possibleUser = (authResponse as any).user ?? (authResponse as any).data ?? null;
+  //     if (possibleUser) {
+  //       // Guardar también en localStorage la estructura completa para consistencia
+  //       localStorage.setItem('user_data', JSON.stringify(possibleUser));
+  //       return { ...authResponse, user: possibleUser };
+  //     }
+  //   } catch (err) {
+  //     // ignore
+  //   }
+
+  //   // Si no vino user en la respuesta, intentar obtenerlo desde el endpoint de perfil
+  //   try {
+  //     const user = await this.getCurrentUser();
+  //     return { ...authResponse, user };
+  //   } catch (err) {
+  //     // Si falla obtener perfil, igual devolvemos tokens para que el frontend pueda continuar
+  //     return authResponse;
+  //   }
+  // }
+    async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    const { data } = await apolloClient.mutate({
+      mutation: LOGIN,
+      variables: {
         email: credentials.email,
-        password: credentials.password,
-      }),
+        password: credentials.password
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: 'Error en el login' }));
-      throw new Error(errorData.detail || 'Credenciales incorrectas');
+    if (!data?.login) {
+      throw new Error('Credenciales incorrectas');
     }
-
-    const authResponse: AuthResponse = await response.json();
 
     // Guardar tokens
     this.saveTokensToStorage({
-      access: authResponse.access,
-      refresh: authResponse.refresh,
+      access: data.login.access,
+      refresh: data.login.refresh
     });
 
     // Si la respuesta ya incluye información del usuario (o un wrapper), normalizar y devolverla
@@ -133,13 +195,11 @@ class AuthService {
     // Si no vino user en la respuesta, intentar obtenerlo desde el endpoint de perfil
     try {
       const user = await this.getCurrentUser();
-      return { ...authResponse, user };
+      return { ...data.login, user };
     } catch (err) {
-      // Si falla obtener perfil, igual devolvemos tokens para que el frontend pueda continuar
-      return authResponse;
+      return data.login;
     }
   }
-
   // Reset password - enviar email de recuperación
  async resetPassword(email: string): Promise<void> {
    const response = await fetch(`${API_BASE_URL}/api/accounts/password-reset/`, {
@@ -265,10 +325,29 @@ class AuthService {
   }
 
   // Obtener perfil del usuario actual
-  async getCurrentUser(): Promise<User> {
-    const response = await this.authenticatedFetch(`${API_BASE_URL}/api/accounts/profile/`);
+  // async getCurrentUser(): Promise<User> {
+  //   const response = await this.authenticatedFetch(`${API_BASE_URL}/api/accounts/profile/`);
 
-    if (!response.ok) {
+  //   if (!response.ok) {
+  //     throw new Error('Error obteniendo perfil de usuario');
+  //   }
+
+  //   const data = await response.json();
+  //   // Guardar la respuesta cruda para depuración/UI (puede venir { user: {...}, ... })
+  //   localStorage.setItem('user_data', JSON.stringify(data));
+
+  //   // Normalizar: si el backend devuelve { user: {...} } devolver el inner user
+  //   const normalized = (data && (data as any).user) ? (data as any).user : data;
+  //   return normalized as User;
+  // }
+
+  async getCurrentUser(): Promise<User> {
+    const { data } = await apolloClient.query({
+      query: GET_ME,
+      fetchPolicy: 'network-only'
+    });
+
+    if (!data?.me) {
       throw new Error('Error obteniendo perfil de usuario');
     }
 

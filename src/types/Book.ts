@@ -6,4 +6,5 @@ export type Book = {
   published_date?: string;
   description?: string;
   thumbnail?: string;
+  categories?: string[];
 };

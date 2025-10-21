@@ -74,6 +74,10 @@ const Navbar: React.FC<Props> = ({
     navigate('/');
   };
 
+  const handleSearch = (q: string) => {
+    onSearch(q);
+  };
+
   return (
     <>
       <nav className="bg-[var(--primary-color)] text-[var(--text-on-primary)] shadow-lg sticky top-0 z-50">
@@ -89,7 +93,7 @@ const Navbar: React.FC<Props> = ({
           {/* Barra de búsqueda */}
           <div className="flex-1 flex justify-center">
             <SearchBar
-              onSearch={onSearch}
+              onSearch={handleSearch}
               value={searchQuery}
               setValue={setSearchQuery}
               placeholder={placeholder}
