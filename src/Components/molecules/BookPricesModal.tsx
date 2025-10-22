@@ -64,12 +64,12 @@ const BookPricesModal: React.FC<BookPricesModalProps> = ({
                   </div>
                   <p className="text-sm text-gray-600 mb-3">{price.availability}</p>
                   <a
-                    href={price.url}
+                    href="https://www.buscalibre.com.co"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-block w-full text-center px-4 py-2 bg-[var(--primary-color)] text-[var(--text-on-primary)] rounded-lg hover:bg-[var(--accent-color)] transition-colors"
                   >
-                    Ir a comprar →
+                    Ir al sitio →
                   </a>
                 </div>
               ))}
