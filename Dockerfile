@@ -10,27 +10,40 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependencias
-RUN npm ci --only=production
+#RUN npm ci --only=production
+# Instalar dependencias (incluye devDependencies necesarias para build)
+RUN npm ci
 
 # Copiar código fuente
 COPY . .
 
-# Construir aplicación para producción
+# Construir aplicación para producción (genera dist/client y dist/server)
 RUN npm run build
 
 # ================================
-# Etapa de producción (Production Stage)
+# Etapa de producción (Runner)
 # ================================
-FROM nginx:alpine
+FROM node:18-alpine AS runner
 
-# Copiar archivos construidos
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Ejecutar en modo producción usando el servidor Node que hace SSR (server.js)
+WORKDIR /app
 
-# Copiar configuración personalizada de nginx
-COPY nginx.conf /etc/nginx/nginx.conf
+# Establecer variable de entorno de producción
+ENV NODE_ENV=production
 
-# Exponer puerto
-EXPOSE 80
+# Copiar solo los artefactos necesarios desde el builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 
-# Comando por defecto
-CMD ["nginx", "-g", "daemon off;"]
+# Copiar package.json (necesario para que Node cargue ESM si "type": "module")
+COPY --from=builder /app/package*.json ./
+
+# Copiar el servidor de producción y la plantilla index.html
+COPY --from=builder /app/server.js ./server.js
+COPY --from=builder /app/index.html ./index.html
+
+# Puerto usado por server.js
+EXPOSE 5173
+
+# Ejecutar el servidor Node que renderiza (SSR)
+CMD ["node", "server.js"]
