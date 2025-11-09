@@ -23,6 +23,23 @@ services:
     ports:
       - "4000:4000"
     networks:
+      - bookworm_network
+
+  # Nginx con HTTPS
+  nginx:
+    image: nginx:latest
+    container_name: bookworm_nginx
+    ports:
+      - "80:80"      # HTTP (redirige a HTTPS)
+      - "443:443"    # HTTPS
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # Montar certificados SSL
+    depends_on:
+      - frontend
+      - gateway
+    networks:
+      - bookworm_network
       - dmz_network
       - backend_network
 
