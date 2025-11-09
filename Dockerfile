@@ -1,7 +1,9 @@
 # ================================
 # Etapa de construcción (Build Stage)
 # ================================
-FROM node:22-alpine AS builder
+
+FROM node:20.19.1-alpine AS builder
+
 
 # Configurar directorio de trabajo
 WORKDIR /app
@@ -24,7 +26,9 @@ RUN npm run build
 # ================================
 # Etapa de producción (Runner)
 # ================================
-FROM node:22-alpine AS runner
+
+FROM node:20.19.1-alpine AS runner
+
 
 # Ejecutar en modo producción usando el servidor Node que hace SSR (server.js)
 WORKDIR /app
@@ -44,7 +48,7 @@ COPY --from=builder /app/server.js ./server.js
 COPY --from=builder /app/index.html ./index.html
 
 # Puerto usado por server.js
-EXPOSE 5173
+#EXPOSE 5173
 
 # Ejecutar el servidor Node que renderiza (SSR)
 CMD ["node", "server.js"]
