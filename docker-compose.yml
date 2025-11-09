@@ -5,27 +5,44 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_GRAPHQL_URL=http://gateway:4000/graphql
+      # Apuntar al gateway usando el nombre del contenedor
+      - VITE_GRAPHQL_URL=http://graphql_gateway:4000/graphql
     networks:
-      - bookworm_network
+      - dmz_network  # Solo en zona pública (DMZ)
     # No automatic dependency to avoid recreate of gateway when using default compose
     #depends_on:
       #- gateway
 
-  # Incluir el gateway para asegurar dependencias
+  # Incluir el gateway para desarrollo individual (opcional)
   gateway:
     profiles:
-      - gateway
-    #image: bookworm/graphql-gateway
+      - gateway  # Solo se levanta si usas: docker-compose --profile gateway up
     build:
       context: ../Middleware-Graphql
     container_name: graphql_gateway
     ports:
       - "4000:4000"
     networks:
-      - bookworm_network
+      - dmz_network
+      - backend_network
 
+# =============================================================================
+# REDES SEGMENTADAS
+# =============================================================================
+# Frontend:
+#   - dmz_network: Zona pública (solo puede comunicarse con el gateway)
+#
+# Gateway (opcional, para desarrollo):
+#   - dmz_network: Recibe del frontend
+#   - backend_network: Comunica con backends
+#
+# PREREQUISITO: Ejecutar bash scripts/setup-networks.sh (en Middleware-Graphql)
+# =============================================================================
 networks:
-  bookworm_network:
+  dmz_network:
     external: true
-    name: bookworm_network
+    name: dmz_network
+  
+  backend_network:
+    external: true
+    name: backend_network

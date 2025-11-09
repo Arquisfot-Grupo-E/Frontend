@@ -1,7 +1,7 @@
 # ================================
 # Etapa de construcción (Build Stage)
 # ================================
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Configurar directorio de trabajo
 WORKDIR /app
@@ -9,10 +9,11 @@ WORKDIR /app
 # Copiar package.json y package-lock.json
 COPY package*.json ./
 
-# Instalar dependencias
-#RUN npm ci --only=production
-# Instalar dependencias (incluye devDependencies necesarias para build)
-RUN npm ci
+# Eliminar package-lock.json y limpiar caché para evitar conflictos de versiones
+RUN rm -f package-lock.json && npm cache clean --force
+
+# Instalar dependencias frescas
+RUN npm install
 
 # Copiar código fuente
 COPY . .
@@ -23,7 +24,7 @@ RUN npm run build
 # ================================
 # Etapa de producción (Runner)
 # ================================
-FROM node:18-alpine AS runner
+FROM node:22-alpine AS runner
 
 # Ejecutar en modo producción usando el servidor Node que hace SSR (server.js)
 WORKDIR /app
