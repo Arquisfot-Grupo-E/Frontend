@@ -1,9 +1,26 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { gql } from "@apollo/client";
+import { apolloClient } from "../../lib/apolloClient";
 import type { Book } from "../../types/Book";
 import BookCard from "../atoms/BookCard";
 import CarouselNavigation from "../molecules/CarouselNavigation";
 import CarouselIndicators from "../molecules/CarouselIndicators";
 import CarouselTrack from "../molecules/CarouselTrack";
+
+const SEARCH_BOOKS = gql`
+  query SearchBooks($query: String!) {
+    searchBooks(query: $query) {
+      id
+      title
+      authors
+      description
+      thumbnail
+      categories
+      publisher
+      published_date
+    }
+  }
+`;
 
 type Props = {
   onBookSelect?: (book: Book) => void;
@@ -32,16 +49,17 @@ const RandomBooksCarousel: React.FC<Props> = ({ onBookSelect }) => {
       try {
         const allBooks: Book[] = [];
         
-        // Hacer varias búsquedas con términos aleatorios
+        // Hacer varias búsquedas con términos aleatorios usando Apollo Client directamente
         for (let i = 0; i < 3; i++) {
           const randomTerm = randomSearchTerms[Math.floor(Math.random() * randomSearchTerms.length)];
-          const response = await fetch(
-            `http://localhost:8000/books/search?q=${randomTerm}&maxResults=10`
-          );
           
-          if (response.ok) {
-            const searchBooks: Book[] = await response.json();
-            allBooks.push(...searchBooks);
+          const { data } = await apolloClient.query({
+            query: SEARCH_BOOKS,
+            variables: { query: randomTerm }
+          });
+          
+          if (data?.searchBooks) {
+            allBooks.push(...data.searchBooks);
           }
           
           // Pausa entre peticiones
@@ -86,16 +104,17 @@ const RandomBooksCarousel: React.FC<Props> = ({ onBookSelect }) => {
     try {
       const allBooks: Book[] = [];
       
-      // Hacer varias búsquedas con términos aleatorios
+      // Hacer varias búsquedas con términos aleatorios usando Apollo Client directamente
       for (let i = 0; i < 3; i++) {
         const randomTerm = randomSearchTerms[Math.floor(Math.random() * randomSearchTerms.length)];
-        const response = await fetch(
-          `http://localhost:8000/books/search?q=${randomTerm}&maxResults=10`
-        );
         
-        if (response.ok) {
-          const searchBooks: Book[] = await response.json();
-          allBooks.push(...searchBooks);
+        const { data } = await apolloClient.query({
+          query: SEARCH_BOOKS,
+          variables: { query: randomTerm }
+        });
+        
+        if (data?.searchBooks) {
+          allBooks.push(...data.searchBooks);
         }
         
         // Pausa entre peticiones
