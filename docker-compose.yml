@@ -2,39 +2,57 @@ services:
   frontend:
     build: .
     container_name: bookworm_frontend
-    ports:
-      - "5173:5173"
+    expose:
+      - "5173"  # Solo exponer dentro de Docker, no al host (Nginx será el punto de entrada)
     environment:
-      # Apuntar al gateway usando el nombre del contenedor
-      - VITE_GRAPHQL_URL=http://graphql_gateway:4000/graphql
+      # Nginx manejará el routing, pero mantenemos esto por si se accede directamente
+      - VITE_GRAPHQL_URL=https://localhost/graphql
     networks:
       - dmz_network  # Solo en zona pública (DMZ)
-    # No automatic dependency to avoid recreate of gateway when using default compose
-    #depends_on:
-      #- gateway
 
   # Incluir el gateway para desarrollo individual (opcional)
+  # NOTA: Si usas el docker-compose.full.yml, no necesitas este servicio
   gateway:
     profiles:
       - gateway  # Solo se levanta si usas: docker-compose --profile gateway up
     build:
       context: ../Middleware-Graphql
     container_name: graphql_gateway
-    ports:
-      - "4000:4000"
+    expose:
+      - "4000"  # Solo exponer dentro de Docker (Nginx hará el proxy)
+    environment:
+      # URLs de ejemplo - ajustar según tus microservicios
+      USERS_SERVICE_URL: http://back-users:8001
+      REVIEWS_SERVICE_URL: http://back-reviews:8000
+      RECOMMENDATIONS_SERVICE_URL: http://back-recommendations:8002
+      SCRAPING_SERVICE_URL: http://back-scraping:8080
     networks:
-      - dmz_network
-      - backend_network
+      - dmz_network      # Interfaz pública: recibe de Nginx
+      - backend_network  # Interfaz privada: comunica con microservicios
+
+  # Nginx con HTTPS - Punto de entrada único
+  nginx:
+    image: nginx:latest
+    container_name: bookworm_nginx
+    ports:
+      - "80:80"      # HTTP (redirige a HTTPS)
+      - "443:443"    # HTTPS - Punto de entrada principal
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # Montar certificados SSL
+    depends_on:
+      - frontend
+    networks:
+      - dmz_network  # Nginx solo necesita estar en DMZ para comunicarse con frontend y gateway
 
 # =============================================================================
 # REDES SEGMENTADAS
 # =============================================================================
-# Frontend:
-#   - dmz_network: Zona pública (solo puede comunicarse con el gateway)
-#
-# Gateway (opcional, para desarrollo):
-#   - dmz_network: Recibe del frontend
-#   - backend_network: Comunica con backends
+# Arquitectura de red:
+#   - dmz_network (172.20.0.0/24): Zona pública
+#     * Nginx: Proxy inverso y terminación SSL (puerto 443)
+#     * Frontend: Aplicación React (puerto 5173)
+#     * Gateway: Interfaz pública del GraphQL (puerto 4000)
 #
 # PREREQUISITO: Ejecutar bash scripts/setup-networks.sh (en Middleware-Graphql)
 # =============================================================================
