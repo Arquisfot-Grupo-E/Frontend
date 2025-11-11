@@ -12,12 +12,66 @@ services:
 
   # Incluir el gateway para desarrollo individual (opcional)
   # NOTA: Si usas el docker-compose.full.yml, no necesitas este servicio
-  gateway:
+  gateway-1:
     profiles:
       - gateway  # Solo se levanta si usas: docker-compose --profile gateway up
     build:
       context: ../Middleware-Graphql
-    container_name: graphql_gateway
+    container_name: graphql_gateway_1
+    expose:
+      - "4000"  # Solo exponer dentro de Docker (Nginx hará el proxy)
+    environment:
+      # URLs de ejemplo - ajustar según tus microservicios
+      USERS_SERVICE_URL: http://back-users:8001
+      REVIEWS_SERVICE_URL: http://back-reviews:8000
+      RECOMMENDATIONS_SERVICE_URL: http://back-recommendations:8002
+      SCRAPING_SERVICE_URL: http://back-scraping:8080
+    networks:
+      - dmz_network      # Interfaz pública: recibe de Nginx
+      - backend_network  # Interfaz privada: comunica con microservicios
+
+  gateway-2:
+    profiles:
+      - gateway  # Solo se levanta si usas: docker-compose --profile gateway up
+    build:
+      context: ../Middleware-Graphql
+    container_name: graphql_gateway_2
+    expose:
+      - "4000"  # Solo exponer dentro de Docker (Nginx hará el proxy)
+    environment:
+      # URLs de ejemplo - ajustar según tus microservicios
+      USERS_SERVICE_URL: http://back-users:8001
+      REVIEWS_SERVICE_URL: http://back-reviews:8000
+      RECOMMENDATIONS_SERVICE_URL: http://back-recommendations:8002
+      SCRAPING_SERVICE_URL: http://back-scraping:8080
+    networks:
+      - dmz_network      # Interfaz pública: recibe de Nginx
+      - backend_network  # Interfaz privada: comunica con microservicios
+    
+  gateway-3:
+    profiles:
+      - gateway  # Solo se levanta si usas: docker-compose --profile gateway up
+    build:
+      context: ../Middleware-Graphql
+    container_name: graphql_gateway_3
+    expose:
+      - "4000"  # Solo exponer dentro de Docker (Nginx hará el proxy)
+    environment:
+      # URLs de ejemplo - ajustar según tus microservicios
+      USERS_SERVICE_URL: http://back-users:8001
+      REVIEWS_SERVICE_URL: http://back-reviews:8000
+      RECOMMENDATIONS_SERVICE_URL: http://back-recommendations:8002
+      SCRAPING_SERVICE_URL: http://back-scraping:8080
+    networks:
+      - dmz_network      # Interfaz pública: recibe de Nginx
+      - backend_network  # Interfaz privada: comunica con microservicios
+
+  gateway-4:
+    profiles:
+      - gateway  # Solo se levanta si usas: docker-compose --profile gateway up
+    build:
+      context: ../Middleware-Graphql
+    container_name: graphql_gateway_4
     expose:
       - "4000"  # Solo exponer dentro de Docker (Nginx hará el proxy)
     environment:
