@@ -1,0 +1,43 @@
+# ================================
+# Blacklisted User Agents
+# ================================
+# Lista de User-Agents maliciosos o sospechosos conocidos
+
+# Scanners de vulnerabilidades
+nikto
+nmap
+sqlmap
+nessus
+openvas
+acunetix
+burp
+w3af
+havij
+metasploit
+
+# Bots maliciosos
+masscan
+zgrab
+shodan
+censys
+zmap
+
+# Scrapers agresivos
+python-requests
+curl
+wget
+go-http-client
+apache-httpclient
+
+# Backdoors y shells
+webshell
+c99shell
+r57shell
+b374k
+
+# Herramientas de ataque
+hydra
+dirbuster
+dirb
+wpscan
+joomscan

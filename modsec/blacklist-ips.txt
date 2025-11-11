@@ -1,0 +1,13 @@
+# ================================
+# Blacklisted IPs
+# ================================
+# Lista de IPs maliciosas bloqueadas
+# Formato: Una IP por línea
+
+# Ejemplo de IPs bloqueadas (reemplazar con IPs reales si es necesario)
+# 192.168.1.100
+# 10.0.0.50
+# 172.16.0.25
+
+# IPs de ejemplo de redes TOR conocidas (opcional)
+# Agregar IPs específicas que hayan sido identificadas como maliciosas

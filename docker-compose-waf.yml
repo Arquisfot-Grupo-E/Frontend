@@ -1,0 +1,134 @@
+services:
+  # ================================
+  # Frontend Application
+  # ================================
+  frontend:
+    build: .
+    container_name: bookworm_frontend
+    expose:
+      - "5173"  # Solo exponer dentro de Docker, no al host
+    environment:
+      - VITE_GRAPHQL_URL=https://localhost/graphql
+      - NODE_ENV=production
+    networks:
+      - dmz_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ================================
+  # GraphQL Gateway (Optional)
+  # ================================
+  gateway:
+    profiles:
+      - gateway  # Solo se levanta con: docker-compose --profile gateway up
+    build:
+      context: ../../middleware/Middleware-Graphql
+    container_name: graphql_gateway
+    expose:
+      - "4000"
+    environment:
+      USERS_SERVICE_URL: http://back-users:8001
+      REVIEWS_SERVICE_URL: http://back-reviews:8000
+      RECOMMENDATIONS_SERVICE_URL: http://back-recommendations:8002
+      SCRAPING_SERVICE_URL: http://back-scraping:8080
+    networks:
+      - dmz_network
+      - backend_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================
+  # Nginx with ModSecurity WAF
+  # ================================
+  nginx_waf:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: bookworm_nginx_waf
+    ports:
+      - "80:80"      # HTTP (redirige a HTTPS)
+      - "443:443"    # HTTPS - Punto de entrada principal
+    volumes:
+      # Configuración de Nginx
+      - ./nginx-waf.conf:/etc/nginx/nginx.conf:ro
+
+      # Configuración de ModSecurity
+      - ./modsec/modsecurity.conf:/etc/nginx/modsec/modsecurity.conf:ro
+      - ./modsec/unicode.mapping:/etc/nginx/modsec/unicode.mapping:ro
+      - ./modsec/blacklist-user-agents.txt:/etc/nginx/modsec/blacklist-user-agents.txt:ro
+      - ./modsec/blacklist-ips.txt:/etc/nginx/modsec/blacklist-ips.txt:ro
+      - ./modsec/custom-rules:/etc/nginx/modsec/custom-rules:ro
+
+      # Certificados SSL
+      - ./ssl:/etc/nginx/ssl:ro
+
+      # Logs persistentes
+      - nginx_logs:/var/log/nginx
+      - modsec_logs:/var/log/modsec
+
+    depends_on:
+      - frontend
+    networks:
+      - dmz_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      - TZ=UTC
+
+# =============================================================================
+# NETWORKS - Segmentación de Redes
+# =============================================================================
+# Arquitectura de red:
+#   - dmz_network (172.20.0.0/24): Zona pública
+#     * Nginx WAF: Proxy inverso con firewall de aplicaciones (puertos 80/443)
+#     * Frontend: Aplicación React SSR (puerto 5173)
+#     * Gateway: API GraphQL (puerto 4000)
+#
+#   - backend_network (172.21.0.0/24): Zona privada (microservicios)
+#     * Back-users, Back-reviews, Back-recommendations, Back-scraping
+#
+# PREREQUISITO:
+#   Ejecutar: bash scripts/setup-networks.sh (en directorio middleware)
+#   O crear manualmente las redes con:
+#     docker network create --driver bridge --subnet 172.20.0.0/24 dmz_network
+#     docker network create --driver bridge --subnet 172.21.0.0/24 backend_network
+# =============================================================================
+networks:
+  dmz_network:
+    external: true
+    name: dmz_network
+
+  backend_network:
+    external: true
+    name: backend_network
+
+# =============================================================================
+# VOLUMES - Persistencia de Logs
+# =============================================================================
+volumes:
+  nginx_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs/nginx
+
+  modsec_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs/modsec

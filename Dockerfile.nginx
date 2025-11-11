@@ -1,0 +1,97 @@
+# ================================
+# Nginx with ModSecurity WAF
+# ================================
+# Este Dockerfile crea una imagen de Nginx con ModSecurity 3 y OWASP CRS
+# para proteger el frontend contra ataques web comunes
+
+FROM nginx:alpine
+
+# Metadata del contenedor
+LABEL maintainer="BookWorm Security Team"
+LABEL description="Nginx with ModSecurity WAF and OWASP Core Rule Set"
+LABEL version="1.0"
+
+# Variables de entorno
+ENV MODSEC_VERSION=3.0.12 \
+    OWASP_CRS_VERSION=4.0.0
+
+# Instalar dependencias necesarias
+RUN apk add --no-cache \
+    gcc \
+    g++ \
+    make \
+    automake \
+    autoconf \
+    libtool \
+    libxml2-dev \
+    curl-dev \
+    yajl-dev \
+    pcre-dev \
+    linux-headers \
+    geoip-dev \
+    zlib-dev \
+    git \
+    curl \
+    wget \
+    ca-certificates
+
+# Crear directorios necesarios
+RUN mkdir -p /etc/nginx/modsec \
+    /var/log/modsec \
+    /var/log/nginx
+
+# Descargar y compilar ModSecurity
+WORKDIR /tmp
+RUN git clone --depth 1 -b v${MODSEC_VERSION} https://github.com/SpiderLabs/ModSecurity && \
+    cd ModSecurity && \
+    git submodule init && \
+    git submodule update && \
+    ./build.sh && \
+    ./configure --with-yajl && \
+    make && \
+    make install && \
+    cp unicode.mapping /etc/nginx/modsec/ && \
+    cd .. && \
+    rm -rf ModSecurity
+
+# Descargar ModSecurity-nginx connector
+# Detectar versión de Nginx instalada
+RUN NGINX_VERSION=$(nginx -v 2>&1 | sed 's/.*nginx\///; s/ .*//') && \
+    echo "Building ModSecurity module for Nginx version: $NGINX_VERSION" && \
+    git clone --depth 1 https://github.com/SpiderLabs/ModSecurity-nginx.git && \
+    cd /tmp && \
+    wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz && \
+    tar zxvf nginx-${NGINX_VERSION}.tar.gz && \
+    cd nginx-${NGINX_VERSION} && \
+    ./configure --with-compat --add-dynamic-module=../ModSecurity-nginx && \
+    make modules && \
+    cp objs/ngx_http_modsecurity_module.so /etc/nginx/modules/ && \
+    cd .. && \
+    rm -rf nginx-${NGINX_VERSION}* ModSecurity-nginx
+
+# Descargar OWASP Core Rule Set
+WORKDIR /etc/nginx/modsec
+RUN wget https://github.com/coreruleset/coreruleset/archive/refs/tags/v${OWASP_CRS_VERSION}.tar.gz && \
+    tar -xzf v${OWASP_CRS_VERSION}.tar.gz && \
+    mv coreruleset-${OWASP_CRS_VERSION} owasp-crs && \
+    rm v${OWASP_CRS_VERSION}.tar.gz && \
+    cp owasp-crs/crs-setup.conf.example owasp-crs/crs-setup.conf
+
+# Copiar configuración base de ModSecurity
+RUN wget -O /etc/nginx/modsec/modsecurity.conf \
+    https://raw.githubusercontent.com/SpiderLabs/ModSecurity/v3/master/modsecurity.conf-recommended
+
+# Limpiar archivos temporales
+WORKDIR /
+RUN rm -rf /tmp/* && \
+    apk del gcc g++ make automake autoconf libtool git wget
+
+# Exponer puertos
+EXPOSE 80 443
+
+# Copiar archivos de configuración personalizados
+# (estos se montarán desde docker-compose.yml)
+VOLUME ["/etc/nginx/nginx.conf", "/etc/nginx/modsec", "/etc/nginx/ssl"]
+
+# Comando de inicio
+CMD ["nginx", "-g", "daemon off;"]

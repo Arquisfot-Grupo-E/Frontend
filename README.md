@@ -1,5 +1,49 @@
-# React + TypeScript + Vite
+# React + TypeScript + Vite + WAF
 
+## 🛡️ Web Application Firewall (WAF)
+
+Este proyecto incluye un WAF completo implementado con **ModSecurity 3** + **Nginx** + **OWASP CRS** para protección contra ataques web.
+
+### Características de Seguridad
+
+✅ **OWASP Top 10 Protection**: SQL Injection, XSS, CSRF, Path Traversal, etc.
+✅ **GraphQL Security**: Introspection blocking, query depth limiting, rate limiting
+✅ **Anti-Bot**: Detección de scrapers, scanners y headless browsers
+✅ **TLS/SSL**: Configuración moderna con HSTS, OCSP stapling
+✅ **Rate Limiting**: Protección contra brute force y DDoS
+✅ **Security Headers**: CSP, X-Frame-Options, X-Content-Type-Options, etc.
+
+### Quick Start con WAF
+
+```bash
+# Setup automático (recomendado)
+bash scripts/setup-waf.sh
+
+# Iniciar con WAF
+docker-compose -f docker-compose-waf.yml up -d
+
+# Verificar estado
+curl -k https://localhost/health
+bash scripts/test-waf.sh
+```
+
+### Documentación WAF
+
+- 📘 [Quick Start Guide](WAF_README.md) - Inicio rápido
+- 📕 [Documentación Completa](WAF_DOCUMENTATION.md) - Guía detallada (130+ páginas)
+- 🚀 [Production Deployment](PRODUCTION_DEPLOYMENT.md) - Despliegue en producción
+- 📊 [Monitoreo](scripts/monitor-waf.sh) - Script interactivo de monitoreo
+
+### Arquitectura
+
+```
+Internet → [Nginx WAF:443] → [Frontend:5173] + [GraphQL Gateway:4000]
+            ↓ ModSecurity
+            ↓ OWASP CRS
+            ↓ Custom Rules
+```
+
+---
 
 ## 🛠️ Instalación
 
